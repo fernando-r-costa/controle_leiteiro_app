@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br">
-      <body className="font-primaryFont bg-secondary-color">
+      <body className="font-primaryFont text-[14px] bg-secondary-color text-dark-color">
         <Banner />
         <main className="h-[80vh]">{children}</main>
         <Footer />
