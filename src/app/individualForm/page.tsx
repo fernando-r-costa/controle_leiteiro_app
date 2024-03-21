@@ -37,7 +37,7 @@ const IndividualForm = () => {
         className="text-[1.4em] p-2 outline-none rounded-lg shadow-lg cursor-pointer mb-8 focus:shadow-highlight-color hover:shadow-highlight-color"
       ></input>
 
-      <ul className="flex gap-4 flex-nowrap">
+      <ul className="flex gap-4 flex-nowrap mb-8">
         <li className="flex flex-col items-center">
           <label
             htmlFor="form-input-milking-1"
@@ -74,6 +74,21 @@ const IndividualForm = () => {
             className="w-24 text-[1.4em] p-2 outline-none rounded-lg shadow-lg cursor-pointer focus:shadow-highlight-color hover:shadow-highlight-color"
           ></input>
         </li>
+      </ul>
+
+      <ul className="flex gap-4 flex-nowrap">
+        <button
+          type="submit"
+          className="bg-primary-color text-light-color text-[1.4em] px-4 py-2 rounded-lg shadow-lg cursor-pointer mb-8 focus:shadow-highlight-color hover:shadow-highlight-color"
+        >
+          Salvar Pesagem
+        </button>
+        <button
+          type="submit"
+          className="bg-primary-color text-light-color text-[1.4em] px-4 py-2 rounded-lg shadow-lg cursor-pointer mb-8 focus:shadow-highlight-color hover:shadow-highlight-color"
+        >
+          Finalizar
+        </button>
       </ul>
     </form>
   );

@@ -1,17 +1,8 @@
 # App Pesagem Leite
 
-## Índice
+### O Projeto:
 
-- [Visão Geral](#visão-geral)
-  - [O projeto](#o-projeto)
-  - [Screenshot](#screenshot)
-  - [Links](#links)
-- [Meu processo](#meu-processo)
-- [Autor](#autor)
-
-## Visão Geral
-
-### O Projeto
+App criado em Next.js e Tailwind, para a realização da pesagem manual de leite durante a ordenha.
 
 Os usuários deverão ter a capacidade de:
 
@@ -19,30 +10,25 @@ Os usuários deverão ter a capacidade de:
 - Ver os estados de foco para todos os elementos interativos na página;
 - Identificar a Fazenda / Retiro da pesagem;
 - Informar a data da pesagem e a quantidade de ordenhas diárias;
-- Informar o número, o nome, a data do parto ou DEL, a ordem de lactação e a pesagem por ordenha;
+- Informar o número, o nome, a data do parto, a ordem de lactação e a pesagem por ordenha;
 - Retornar lista por ordem de produção, com médias;
 - Possibilidade de salvar em PDF ou imprimir.
 
-### Screenshot
 
-<!-- ![](./design/desktop-preview.jpg) -->
-
-### Links
-
-<!-- - Site URL: []() -->
-
-## Meu processo
+### Meu processo
 
 - [ ] Mobile-design
-  - [ ] Tela identificação Fazenda/Retiro
-  - [ ] Tela data e quantidade de ordenhas
-  - [ ] Refatorar nomes
-  - [ ] Tela informações individuais da pesagem
+  - [x] Tela de login
+  - [x] Tela identificação Fazenda/Retiro
+  - [x] Tela data e quantidade de ordenhas
+  - [x] Tela informações individuais da pesagem
+  - [ ] Refatorar
   - [ ] Tela lista
   - [ ] Tela imprimir
 - [ ] Desktop-design
 
-## Autor
+
+### Autor
 
 <img src="./public/frc.gif" width=120px>
 

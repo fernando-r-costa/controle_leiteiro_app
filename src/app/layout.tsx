@@ -17,7 +17,7 @@ export default function RootLayout({
     <html lang="pt-br">
       <body className="font-primaryFont text-[14px] bg-secondary-color text-dark-color">
         <Banner />
-        <main className="h-[80vh]">{children}</main>
+        <main className="h-[80vh] overflow-y-auto">{children}</main>
         <Footer />
       </body>
     </html>
