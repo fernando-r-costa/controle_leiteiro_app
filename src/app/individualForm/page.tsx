@@ -1,96 +1,71 @@
 "use client";
+import { Form } from "../components/form/page";
+import {
+  FormLabelLarge,
+  FormLabelShort,
+  FormTitle,
+} from "../components/texts/page";
+import { FormInputLarge, FormInputShort } from "../components/inputs/page";
+import { Button } from "../components/buttons/page";
 
 const IndividualForm = () => {
   return (
-    <form className="flex flex-col items-center text-center mx-8">
-      <h1 className="text-[2em] font-semibold my-4">
-        Insira os dados do animal:
-      </h1>
+    <Form>
+      <FormTitle>Insira os dados do animal:</FormTitle>
 
-      <label
-        htmlFor="form-input-number-id"
-        className="text-[1.4em] mb-4 text-center"
-      >
-        Número:
-      </label>
-      <input
-        type="number"
-        className="text-[1.4em] p-2 outline-none rounded-lg shadow-lg cursor-pointer mb-8 focus:shadow-highlight-color hover:shadow-highlight-color"
-      ></input>
+      <FormLabelLarge>Número</FormLabelLarge>
+      <FormInputLarge
+        type={"number"}
+        value={""}
+        // onChange={}
+      />
 
-      <label
-        htmlFor="form-input-name-id"
-        className="text-[1.4em] mb-4 text-center"
-      >
-        Nome:
-      </label>
-      <input
-        type="text"
-        className="text-[1.4em] p-2 outline-none rounded-lg shadow-lg cursor-pointer mb-8 focus:shadow-highlight-color hover:shadow-highlight-color"
-      ></input>
+      <FormLabelLarge>Nome:</FormLabelLarge>
+      <FormInputLarge
+        type={"text"}
+        value={""}
+        // onChange={}
+      />
 
-      <label htmlFor="form-input-del" className="text-[1.4em] mb-4 text-center">
-        Data Parto:
-      </label>
-      <input
-        type="date"
-        className="text-[1.4em] p-2 outline-none rounded-lg shadow-lg cursor-pointer mb-8 focus:shadow-highlight-color hover:shadow-highlight-color"
-      ></input>
+      <FormLabelLarge>Data Parto:</FormLabelLarge>
+      <FormInputLarge
+        type={"date"}
+        value={""}
+        // onChange={}
+      />
 
       <ul className="flex gap-4 flex-nowrap mb-8">
         <li className="flex flex-col items-center">
-          <label
-            htmlFor="form-input-milking-1"
-            className="text-[1.3em] sm:text-[1.4em] mb-4 text-center"
-          >
-            Ordenha 1:
-          </label>
-          <input
-            type="number"
-            className="w-24 text-[1.4em] p-2 outline-none rounded-lg shadow-lg cursor-pointer focus:shadow-highlight-color hover:shadow-highlight-color"
-          ></input>
+          <FormLabelShort>Ordenha 1:</FormLabelShort>
+          <FormInputShort
+            type={"number"}
+            value={""}
+            // onChange={}
+          />
         </li>
         <li className="flex flex-col items-center">
-          <label
-            htmlFor="form-input-milking-2"
-            className="text-[1.3em] sm:text-[1.4em] mb-4 text-center"
-          >
-            Ordenha 2:
-          </label>
-          <input
-            type="number"
-            className="w-24 text-[1.4em] p-2 outline-none rounded-lg shadow-lg cursor-pointer focus:shadow-highlight-color hover:shadow-highlight-color"
-          ></input>
+          <FormLabelShort>Ordenha 2:</FormLabelShort>
+          <FormInputShort
+            type={"number"}
+            value={""}
+            // onChange={}
+          />
         </li>
         <li className="flex flex-col items-center">
-          <label
-            htmlFor="form-input-milking-3"
-            className="text-[1.3em] sm:text-[1.4em] mb-4 text-center"
-          >
-            Ordenha 3:
-          </label>
-          <input
-            type="number"
-            className="w-24 text-[1.4em] p-2 outline-none rounded-lg shadow-lg cursor-pointer focus:shadow-highlight-color hover:shadow-highlight-color"
-          ></input>
+          <FormLabelShort>Ordenha 3:</FormLabelShort>
+          <FormInputShort
+            type={"number"}
+            value={""}
+            // onChange={}
+          />
         </li>
       </ul>
 
       <ul className="flex gap-4 flex-nowrap">
-        <button
-          type="submit"
-          className="bg-primary-color text-light-color text-[1.4em] px-4 py-2 rounded-lg shadow-lg cursor-pointer mb-8 focus:shadow-highlight-color hover:shadow-highlight-color"
-        >
-          Salvar Pesagem
-        </button>
-        <button
-          type="submit"
-          className="bg-primary-color text-light-color text-[1.4em] px-4 py-2 rounded-lg shadow-lg cursor-pointer mb-8 focus:shadow-highlight-color hover:shadow-highlight-color"
-        >
-          Finalizar
-        </button>
+        <Button type="submit">Próximo Animal</Button>
+        <Button type="submit">Finalizar Pesagem</Button>
       </ul>
-    </form>
+    </Form>
   );
 };
 
