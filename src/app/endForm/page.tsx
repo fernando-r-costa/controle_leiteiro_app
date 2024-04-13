@@ -1,8 +1,8 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Form } from "../components/form/page";
-import { FormTitle } from "../components/texts/page";
-import { Button } from "../components/buttons/page";
+import Form from "../components/form/page";
+import Button from "../components/buttons/page";
+import FormText from "../components/texts/page";
 
 const EndForm = () => {
   const router = useRouter();
@@ -14,7 +14,7 @@ const EndForm = () => {
 
   return (
     <Form onSubmit={handleFormSubmit}>
-      <FormTitle>Pesagem Finalizada!</FormTitle>
+      <FormText type={"title"}>Pesagem Finalizada!</FormText>
 
       <Button type="submit">Encerrar</Button>
     </Form>

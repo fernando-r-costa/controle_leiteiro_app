@@ -1,9 +1,9 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Form } from "../components/form/page";
-import { FormError, FormLabelLarge, FormTitle } from "../components/texts/page";
-import { FormInputLarge } from "../components/inputs/page";
-import { Button } from "../components/buttons/page";
+import Form from "../components/form/page";
+import FormText from "../components/texts/page";
+import FormInput from "../components/inputs/page";
+import Button from "../components/buttons/page";
 import { useState } from "react";
 
 const StartForm = () => {
@@ -32,25 +32,27 @@ const StartForm = () => {
 
   return (
     <Form onSubmit={handleFormSubmit}>
-      <FormTitle>Dados iniciais:</FormTitle>
+      <FormText type="title">Dados iniciais:</FormText>
 
-      <FormLabelLarge>
+      <FormText type="label-large">
         Qual o nome da Fazenda ou do Retiro onde será feita a medição:
-      </FormLabelLarge>
-      <FormInputLarge
+      </FormText>
+      <FormInput
+        size="large"
         type={"text"}
         value={farm}
         onChange={(e) => setFarm(e.target.value)}
       />
 
-      <FormLabelLarge>Informe a data da medição:</FormLabelLarge>
-      <FormInputLarge
+      <FormText type="label-large">Informe a data da medição:</FormText>
+      <FormInput
+        size="large"
         type={"date"}
         value={date}
         onChange={(e) => setDate(e.target.value)}
       />
 
-      {error && <FormError>{error}</FormError>}
+      {error && <FormText type="error">{error}</FormText>}
 
       <Button type="submit">Iniciar</Button>
     </Form>

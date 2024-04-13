@@ -1,9 +1,9 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Form } from "../components/form/page";
-import { FormLabelLarge, FormTitle, FormError } from "../components/texts/page";
-import { FormInputLarge } from "../components/inputs/page";
-import { Button } from "../components/buttons/page";
+import Form from "../components/form/page";
+import FormText from "../components/texts/page";
+import FormInput from "../components/inputs/page";
+import Button from "../components/buttons/page";
 import { useState } from "react";
 
 const Login = () => {
@@ -33,23 +33,25 @@ const Login = () => {
 
   return (
     <Form onSubmit={handleFormSubmit}>
-      <FormTitle>Login:</FormTitle>
+      <FormText type="title">Login:</FormText>
 
-      <FormLabelLarge>E-MAIL:</FormLabelLarge>
-      <FormInputLarge
+      <FormText type="label-large">E-MAIL:</FormText>
+      <FormInput
+        size="large"
         type={"email"}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
 
-      <FormLabelLarge>SENHA:</FormLabelLarge>
-      <FormInputLarge
+      <FormText type="label-large">SENHA:</FormText>
+      <FormInput
+        size="large"
         type={"password"}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
 
-      {error && <FormError>{error}</FormError>}
+      {error && <FormText type="error">{error}</FormText>}
 
       <Button type="submit">Entrar</Button>
     </Form>
