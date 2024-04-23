@@ -1,10 +1,12 @@
 {
+"display_override": ["window-controls-overlay"], 
+"protocol_handlers": [{"protocol":"mailto","url":"/newEmail?to=%s"}], 
 "name": "Pesagem de leite",
 "short_name": "Pesagem de leite",
-"start_url": "The URL that should be loaded when your application is opened",
+"start_url": "/",
 "display": "standalone",
-"description": "A description for your application",
-"lang": " The default language of your application",
+"description": "App para pesagem da ordenha de leite",
+"lang": "pt",
 "dir": "auto",
 "theme_color": "#000000",
 "background_color": "#000000",
@@ -34,7 +36,7 @@
 "related_applications": [
   {
     "platform":"windows",
-    "url": " The URL to your app in that app store"
+    "url": "/"
   }
 ],
 "prefer_related_applications": false,
@@ -44,5 +46,6 @@
     "url":"The url you would like to open when the user chooses this shortcut. This must be a URL local to your PWA. For example: If my start_url is /, this URL must be something like /shortcut",
     "description":"A description of the functionality of this shortcut"
   }
-]
+],
+"iarc_rating_id": "e58c174a-81d2-5c3c-32cc-34b8de4a52e9"
 }
