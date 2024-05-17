@@ -6,7 +6,7 @@ import FormInput from "../components/inputs/page";
 import Button from "../components/buttons/page";
 import { useState } from "react";
 
-const Login = () => {
+const LoginForm = () => {
   const router = useRouter();
 
   const [email, setEmail] = useState("teste@teste.com");
@@ -24,12 +24,19 @@ const Login = () => {
     if (!password) {
       setError("Por favor, insira uma senha.");
       return;
+    } else if (password.length < 8) {
+      setError("Por favor, insira uma senha com no mínimo 8 caracteres.");
+      return;
     }
 
     setError("");
     console.log("🚀  email: " + email, "password: " + password);
-    router.push("/startForm");
+    router.push("/fazenda");
   };
+
+  const newFarmer = () => {
+    router.push("/cadastro_produtor");
+  }
 
   return (
     <Form onSubmit={handleFormSubmit}>
@@ -54,8 +61,9 @@ const Login = () => {
       {error && <FormText type="error">{error}</FormText>}
 
       <Button type="submit">Entrar</Button>
+      <Button type="button" onClick={newFarmer}>Novo cadastro</Button>
     </Form>
   );
 };
 
-export default Login;
+export default LoginForm;
