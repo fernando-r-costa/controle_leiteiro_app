@@ -9,7 +9,7 @@ const EndForm = () => {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push("/login");
+    router.push("/atividades");
   };
 
   return (

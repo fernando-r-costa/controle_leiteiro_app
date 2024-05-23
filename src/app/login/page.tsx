@@ -36,7 +36,7 @@ const LoginForm = () => {
 
   const newFarmer = () => {
     router.push("/cadastro_produtor");
-  }
+  };
 
   return (
     <Form onSubmit={handleFormSubmit}>
@@ -61,7 +61,9 @@ const LoginForm = () => {
       {error && <FormText type="error">{error}</FormText>}
 
       <Button type="submit">Entrar</Button>
-      <Button type="button" onClick={newFarmer}>Novo cadastro</Button>
+      <Button type="button" onClick={newFarmer}>
+        Novo cadastro
+      </Button>
     </Form>
   );
 };

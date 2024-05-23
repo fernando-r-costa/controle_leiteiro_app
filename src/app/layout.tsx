@@ -6,6 +6,9 @@ import Footer from "./components/footer/page";
 export const metadata: Metadata = {
   title: "App Controle Leiteiro",
   description: "App para controle leiteiro da ordenha de leite",
+  icons: {
+    icon: "/frc.gif",
+  },
 };
 
 export default function RootLayout({
@@ -15,9 +18,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br">
-      <body className="font-primaryFont text-[14px] bg-secondary-color text-dark-color">
+      <body className="flex flex-col h-dvh font-primaryFont text-[14px] bg-secondary-color text-dark-color">
         <Banner />
-        <main className="h-[80vh] overflow-y-auto">{children}</main>
+        <main className="flex-grow overflow-y-auto">{children}</main>
         <Footer />
       </body>
     </html>

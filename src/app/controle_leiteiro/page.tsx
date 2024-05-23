@@ -6,45 +6,29 @@ import FormInput from "../components/inputs/page";
 import Button from "../components/buttons/page";
 import { useState } from "react";
 
-const StartForm = () => {
+const ProductionDateForm = () => {
   const router = useRouter();
 
-  const [farm, setFarm] = useState("");
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState("2024-05-01");
   const [error, setError] = useState("");
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!farm) {
-      setError("Por favor, insira uma Fazenda válida.");
-      return;
-    }
     if (!date) {
       setError("Por favor, insira uma data.");
       return;
     }
 
     setError("");
-    console.log("🚀  farm: " + farm, "date: " + date);
-    router.push("/individualForm");
+    console.log("🚀 date: " + date);
+    router.push("/controle_individual");
   };
 
   return (
     <Form onSubmit={handleFormSubmit}>
-      <FormText type="title">Dados iniciais:</FormText>
+      <FormText type="title">Informe a data do controle leiteiro:</FormText>
 
-      <FormText type="label-large">
-        Qual o nome da Fazenda ou do Retiro onde será feita a medição:
-      </FormText>
-      <FormInput
-        size="large"
-        type={"text"}
-        value={farm}
-        onChange={(e) => setFarm(e.target.value)}
-      />
-
-      <FormText type="label-large">Informe a data da medição:</FormText>
       <FormInput
         size="large"
         type={"date"}
@@ -59,4 +43,4 @@ const StartForm = () => {
   );
 };
 
-export default StartForm;
+export default ProductionDateForm;

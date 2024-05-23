@@ -12,7 +12,7 @@ const ActivitiesForm = () => {
   };
 
   const goBack = () => {
-    router.back();
+    router.push("/fazenda");
   };
 
   return (

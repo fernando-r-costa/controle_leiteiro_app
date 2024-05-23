@@ -39,6 +39,10 @@ const FarmForm = () => {
     router.push("/cadastro_fazenda");
   }
 
+  const logout = () => {
+    router.push("/");
+  }
+
   return (
     <Form onSubmit={handleFormSubmit}>
       <FormText type="title">FAZENDA:</FormText>
@@ -58,6 +62,7 @@ const FarmForm = () => {
 
       <Button type="submit">Selecionar</Button>
       <Button type="button" onClick={newFarm}>Nova Fazenda</Button>
+      <Button type="button" onClick={logout}>Sair</Button>
     </Form>
   );
 };

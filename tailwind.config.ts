@@ -13,7 +13,7 @@ const config: Config = {
       'light-color': '#F8F8F8',
       'primary-color': '#6d7275ff',
       'secondary-color': '#c7d6d5ff',
-      'tertiary-color': '#ecebf3ff',
+      'tertiary-color': '#F4A460',
   },
     fontFamily: {
       primaryFont: ['Poppins', 'sans-serif']
