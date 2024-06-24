@@ -1,15 +1,18 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Form from "../components/form/page";
 import Button from "../components/buttons/page";
 import FormText from "../components/texts/page";
 
 const EndForm = () => {
   const router = useRouter();
+  const params = useSearchParams();
+  const farmerId = params.get("farmerId");
+  const farmId = params.get("farmId");
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push("/atividades");
+    router.push(`/atividades?farmerId=${farmerId}&farmId=${farmId}`);
   };
 
   return (

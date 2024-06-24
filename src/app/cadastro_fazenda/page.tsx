@@ -1,16 +1,23 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
 import Button from "../components/buttons/page";
-import { useState } from "react";
+import axios from "axios";
 
 const FarmRegisterForm = () => {
   const router = useRouter();
+  const params = useSearchParams();
+  const farmerId = params.get("farmerId");
+  const farmerIdNumber = farmerId ? parseInt(farmerId) : null;
 
-  const [farmName, setFarmName] = useState("Fazenda Teste 1");
+  const [farmName, setFarmName] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false)
+
+  const apiFarmUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}farm`;
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,8 +28,24 @@ const FarmRegisterForm = () => {
     }
 
     setError("");
-    console.log("🚀 fazenda: " + farmName);
-    router.push("/fazenda");
+
+    const farmData = {
+      name: farmName,
+      farmerId: farmerIdNumber,
+    };
+
+    setIsLoading(true)
+
+    axios
+      .post(apiFarmUrl, farmData)
+      .then(() => {
+        router.push(`/fazenda?farmerId=${farmerId}`);
+        setIsLoading(false)
+      })
+      .catch(() => {
+        setError("Erro ao cadastrar Fazenda");
+        setIsLoading(false)
+      });
   };
 
   const goBack = () => {
@@ -30,7 +53,7 @@ const FarmRegisterForm = () => {
   };
 
   return (
-    <Form onSubmit={handleFormSubmit}>
+    <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
       <FormText type="title">CADASTRAR NOVA FAZENDA:</FormText>
 
       <FormText type="label-large">NOME DA FAZENDA:</FormText>

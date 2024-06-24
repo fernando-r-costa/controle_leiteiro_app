@@ -1,68 +1,104 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import useSWR from "swr";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
 import Button from "../components/buttons/page";
-import { useState } from "react";
+
+interface Farm {
+  farmId: number;
+  name: string;
+  farmerId: number;
+}
+
+const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 const FarmForm = () => {
   const router = useRouter();
+  const params = useSearchParams();
+  const farmerId = params.get("farmerId");
 
-  const [farm, setFarm] = useState("Fazenda Teste1");
-  const [error, setError] = useState("");
+  const [farmId, setFarmId] = useState<number>(0);
+  const [error, setError] = useState<string>("");
 
-  const farmList = ["Fazenda Teste1", "Fazenda Teste2"];
+  const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}farm/farmer/${farmerId}`;
+  const {
+    data: farmList,
+    error: farmError,
+    isLoading,
+  } = useSWR<Farm[]>(apiUrl, fetcher);
+
+  useEffect(() => {
+    if (farmError) {
+      console.error("Erro ao carregar fazendas:", farmError);
+      setError("Erro ao carregar fazendas!");
+    }
+  }, [farmError]);
+
+  useEffect(() => {
+    if (farmList && farmList.length > 0) {
+      setFarmId(Number(farmList[0].farmId));
+    }
+  }, [farmList]);
 
   const handleSelectChange = (
-    e:
-      | React.ChangeEvent<HTMLSelectElement>
-      | React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
   ) => {
-    setFarm(e.target.value);
+    setFarmId(Number(e.target.value));
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!farm) {
+    if (!farmId) {
       setError("Por favor, selecione uma fazenda.");
       return;
     }
 
     setError("");
-    console.log("🚀  farm: " + farm);
-    router.push("/atividades");
+    router.push(`/atividades?farmerId=${farmerId}&farmId=${farmId}`);
   };
 
   const newFarm = () => {
-    router.push("/cadastro_fazenda");
-  }
+    router.push(`/cadastro_fazenda?farmerId=${farmerId}`);
+  };
 
   const logout = () => {
+    setFarmId(0);
     router.push("/");
-  }
+  };
 
   return (
-    <Form onSubmit={handleFormSubmit}>
+    <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
       <FormText type="title">FAZENDA:</FormText>
 
       <FormText type="label-large">
         Qual o nome da Fazenda ou do Retiro onde será feita a medição:
       </FormText>
+
       <FormInput
         size="select"
         type="select"
-        value={farm}
+        value={farmId}
         onChange={handleSelectChange}
-        options={farmList.map((farm) => ({ label: farm, value: farm }))}
+        options={farmList?.map((farm) => ({
+          label: farm.name,
+          value: String(farm.farmId),
+        }))}
       />
 
       {error && <FormText type="error">{error}</FormText>}
 
       <Button type="submit">Selecionar</Button>
-      <Button type="button" onClick={newFarm}>Nova Fazenda</Button>
-      <Button type="button" onClick={logout}>Sair</Button>
+      <Button type="button" onClick={newFarm}>
+        Nova Fazenda
+      </Button>
+      <Button type="button" onClick={logout}>
+        Sair
+      </Button>
     </Form>
   );
 };

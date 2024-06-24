@@ -10,7 +10,10 @@ type TableRowData = {
   cowName?: string;
   dim: number;
   dtc?: number;
-  production: number;
+  weightMilking1: number;
+  weightMilking2?: number;
+  weightMilking3?: number;
+  production?: string;
 };
 
 type TableProps = {
@@ -25,12 +28,31 @@ const Table: React.FC<TableProps> = ({ data, title: { farm, date } }) => {
   const columns: TableColumn[] = [
     { key: "cowNumber", label: "NÚMERO" },
     { key: "cowName", label: "NOME" },
-    { key: "dim", label: "DEL" },
-    { key: "dtc", label: "PREVISÃO PARTO" },
+    { key: "dim", label: "DIAS EM LACTAÇÃO" },
+    { key: "dtc", label: "DIAS PARA PARTO" },
     { key: "production", label: "PRODUÇÃO TOTAL" },
   ];
 
-  const sortedData = [...data].sort((a, b) => b.production - a.production);
+  const sumProduction = (row: TableRowData): string => {
+    const totalProduction =
+      (row.weightMilking1 || 0) +
+      (row.weightMilking2 || 0) +
+      (row.weightMilking3 || 0);
+    return totalProduction.toLocaleString("pt-BR", {
+      minimumFractionDigits: 1,
+    });
+  };
+
+  const sortedData = [...data]
+    .map((row) => ({
+      ...row,
+      production: sumProduction(row),
+    }))
+    .sort(
+      (a, b) =>
+        parseFloat(b.production.replace(",", ".")) -
+        parseFloat(a.production.replace(",", "."))
+    );
 
   const formatNumber = (value: string | number) => {
     if (typeof value === "number") {
@@ -45,9 +67,13 @@ const Table: React.FC<TableProps> = ({ data, title: { farm, date } }) => {
 
   const totalProduction = data.reduce(
     (sum, cow) =>
-      sum + (typeof cow.production === "number" ? cow.production : 0),
+      sum +
+      (cow.weightMilking1 || 0) +
+      (cow.weightMilking2 || 0) +
+      (cow.weightMilking3 || 0),
     0
   );
+
   const numberOfCows = data.length;
   const averageProduction = totalProduction / numberOfCows;
   const totalDEL = data.reduce(
@@ -108,7 +134,7 @@ const Table: React.FC<TableProps> = ({ data, title: { farm, date } }) => {
       </div>
 
       <div className="mt-8 px-8">
-        <div className="overflow-x-auto mt-4 p-2">
+        <div className="overflow-x-auto mb-4 p-2">
           <table className="w-full border-collapse border border-primary-color">
             <thead>
               <tr className="bg-primary-color text-light-color">

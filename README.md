@@ -1,4 +1,4 @@
-# App Pesagem Leite
+# App Controle Leiteiro
 
 ### O Projeto:
 
@@ -11,8 +11,8 @@ Os usuários deverão ter a capacidade de:
 - Cadastrar o produtor e logar;
 - Cadastrar e Identificar a Fazenda / Retiro da pesagem;
 - Selecionar a atividade desejada;
-- Informar a data da pesagem e a quantidade de ordenhas diárias;
 - Cadastrar animais: Informar o número, o nome, a data do parto e a previsão de parto;
+- Informar a data da pesagem e cadastrar produção individual diária;
 - Retornar lista por ordem de produção, com médias;
 - Possibilidade de salvar em PDF ou imprimir.
 
@@ -24,11 +24,11 @@ Os usuários deverão ter a capacidade de:
   - [x] Tela de fazenda
   - [x] Tela de atividade
   - [x] Tela de cadastro de animais
-  - [ ] Tela de controle leiteiro
-  - [ ] Tela de relatórios
-- [ ] Desktop-design
-- [ ] Tela lista
+  - [x] Tela de controle leiteiro
+  - [x] Tela de relatórios
+- [ ] Responsive-design
 - [ ] Tela imprimir
+- [ ] Tela relatório avançado
 - [ ] Refatorar
 
 

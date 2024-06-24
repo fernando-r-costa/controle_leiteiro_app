@@ -1,18 +1,21 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import Button from "../components/buttons/page";
 
 const ActivitiesForm = () => {
   const router = useRouter();
+  const params = useSearchParams();
+  const farmerId = params.get("farmerId");
+  const farmId = params.get("farmId");
 
-  const goTo = (url: string) => () => {
-    router.push(url);
+  const goTo = (atividade: string) => () => {
+    router.push(`${atividade}?farmerId=${farmerId}&farmId=${farmId}`);
   };
 
   const goBack = () => {
-    router.push("/fazenda");
+    router.push(`fazenda?farmerId=${farmerId}`);
   };
 
   return (

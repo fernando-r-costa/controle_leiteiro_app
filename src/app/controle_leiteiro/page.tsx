@@ -1,28 +1,32 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
 import Button from "../components/buttons/page";
-import { useState } from "react";
 
 const ProductionDateForm = () => {
   const router = useRouter();
+  const params = useSearchParams();
+  const farmerId = params.get("farmerId");
+  const farmId = params.get("farmId");
 
-  const [date, setDate] = useState("2024-05-01");
+  const [controlDate, setControlDate] = useState("");
   const [error, setError] = useState("");
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!date) {
+    if (!controlDate) {
       setError("Por favor, insira uma data.");
       return;
     }
 
     setError("");
-    console.log("🚀 date: " + date);
-    router.push("/controle_individual");
+    router.push(
+      `/controle_individual?farmerId=${farmerId}&farmId=${farmId}&controlDate=${controlDate}`
+    );
   };
 
   return (
@@ -32,8 +36,8 @@ const ProductionDateForm = () => {
       <FormInput
         size="large"
         type={"date"}
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
+        value={controlDate}
+        onChange={(e) => setControlDate(e.target.value)}
       />
 
       {error && <FormText type="error">{error}</FormText>}

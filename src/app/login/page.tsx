@@ -1,10 +1,10 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
 import Button from "../components/buttons/page";
-import { useState } from "react";
 
 const LoginForm = () => {
   const router = useRouter();
@@ -12,6 +12,7 @@ const LoginForm = () => {
   const [email, setEmail] = useState("teste@teste.com");
   const [password, setPassword] = useState("teste1234");
   const [error, setError] = useState("");
+  const [farmerId, setFarmerId] = useState<number>(35);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,8 +31,7 @@ const LoginForm = () => {
     }
 
     setError("");
-    console.log("🚀  email: " + email, "password: " + password);
-    router.push("/fazenda");
+    router.push(`/fazenda?farmerId=${farmerId}`);
   };
 
   const newFarmer = () => {
