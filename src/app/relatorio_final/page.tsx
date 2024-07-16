@@ -49,7 +49,11 @@ const TableForm = () => {
   const controlDate = params.get("controlDate");
 
   const [tableData, setTableData] = useState<TableData[]>([]);
-  const [title, setTitle] = useState({ farm: "", date: "" });
+  const [title, setTitle] = useState<{ farm: string; date: string }>({
+    farm: "",
+    date: "",
+  });
+  console.log("🚀  title:", title);
   const [error, setError] = useState("");
 
   const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}dairy-control/farm/${farmId}/date/${controlDate}`;
@@ -98,8 +102,7 @@ const TableForm = () => {
 
   return (
     <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
-    
-      <Table data={tableData} title={title}/>
+      <Table data={tableData} title={title} />
 
       {error && <FormText type="error">{error}</FormText>}
 

@@ -24,7 +24,7 @@ type TableProps = {
   };
 };
 
-const Table: React.FC<TableProps> = ({ data, title: { farm, date } }) => {
+const Table: React.FC<TableProps> = ({ data, title }) => {
   const columns: TableColumn[] = [
     { key: "cowNumber", label: "NÚMERO" },
     { key: "cowName", label: "NOME" },
@@ -43,7 +43,9 @@ const Table: React.FC<TableProps> = ({ data, title: { farm, date } }) => {
     });
   };
 
-  const sortedData = [...data]
+  const validData = Array.isArray(data) ? data : []
+
+  const sortedData = [...validData]
     .map((row) => ({
       ...row,
       production: sumProduction(row),
@@ -65,7 +67,7 @@ const Table: React.FC<TableProps> = ({ data, title: { farm, date } }) => {
     return value;
   };
 
-  const totalProduction = data.reduce(
+  const totalProduction = validData.reduce(
     (sum, cow) =>
       sum +
       (cow.weightMilking1 || 0) +
@@ -74,9 +76,9 @@ const Table: React.FC<TableProps> = ({ data, title: { farm, date } }) => {
     0
   );
 
-  const numberOfCows = data.length;
+  const numberOfCows = validData.length;
   const averageProduction = totalProduction / numberOfCows;
-  const totalDEL = data.reduce(
+  const totalDEL = validData.reduce(
     (sum, cow) => sum + (typeof cow.dim === "number" ? cow.dim : 0),
     0
   );
@@ -91,12 +93,12 @@ const Table: React.FC<TableProps> = ({ data, title: { farm, date } }) => {
 
   return (
     <>
-      {(farm || date) && (
+      {title && (title.farm || title.date) && (
         <div className="px-8">
-          <FormText type={"title"}>{farm}</FormText>
+          <FormText type={"title"}>{title.farm}</FormText>
           <FormText
             type={"label-large"}
-          >{`Data do Controle: ${date}`}</FormText>
+          >{`Data do Controle: ${title.date}`}</FormText>
         </div>
       )}
       <div className="overflow-x-auto mt-4 p-2">
