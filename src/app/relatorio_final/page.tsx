@@ -53,7 +53,6 @@ const TableForm = () => {
     farm: "",
     date: "",
   });
-  console.log("🚀  title:", title);
   const [error, setError] = useState("");
 
   const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}dairy-control/farm/${farmId}/date/${controlDate}`;
