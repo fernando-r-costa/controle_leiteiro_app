@@ -125,8 +125,8 @@ const IndividualProductionForm = () => {
           dairyDateControl: controlDate,
           animalId: animalId,
           weightMilking1: weightMilking1,
-          weightMilking2: weightMilking2,
-          weightMilking3: weightMilking3,
+          weightMilking2: weightMilking2 || null,
+          weightMilking3: weightMilking3 || null,
         };
         await axios.post(`${apiDairyControlUrl}`, dairyControlRegisterPost);
       } else {
@@ -135,8 +135,8 @@ const IndividualProductionForm = () => {
           dairyDateControl: controlDate,
           animalId: animalId,
           weightMilking1: weightMilking1,
-          weightMilking2: weightMilking2,
-          weightMilking3: weightMilking3,
+          weightMilking2: weightMilking2 || null,
+          weightMilking3: weightMilking3 || null,
         };
         await axios.put(`${apiDairyControlUrl}`, dairyControlRegisterPut);
       }

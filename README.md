@@ -19,14 +19,14 @@ Os usuários deverão ter a capacidade de:
 
 ### Meu processo
 
-- [ ] Mobile-design
+- [x] Mobile-design
   - [x] Tela de login
   - [x] Tela de fazenda
   - [x] Tela de atividade
   - [x] Tela de cadastro de animais
   - [x] Tela de controle leiteiro
   - [x] Tela de relatórios
-- [ ] Responsive-design
+- [x] Responsive-design
 - [ ] Tela imprimir
 - [ ] Tela relatório avançado
 - [ ] Refatorar

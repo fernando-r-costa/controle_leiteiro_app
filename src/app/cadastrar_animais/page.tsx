@@ -78,10 +78,10 @@ const CowRegisterForm = () => {
 
     const animalData = {
       animalId: findByNumber?.animalId,
-      name: cowName,
+      name: cowName || null,
       number: cowNumber,
       calvingDate: calvingDate,
-      expectedDate: expectedDate,
+      expectedDate: expectedDate || null,
       farmId: farmIdNumber,
     };
 
