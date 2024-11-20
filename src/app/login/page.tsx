@@ -1,6 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import axios from "axios";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
@@ -9,12 +10,12 @@ import Button from "../components/buttons/page";
 const LoginForm = () => {
   const router = useRouter();
 
-  const [email, setEmail] = useState("teste@teste.com");
-  const [password, setPassword] = useState("teste1234");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [farmerId, setFarmerId] = useState<number>(35);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -31,7 +32,29 @@ const LoginForm = () => {
     }
 
     setError("");
-    router.push(`/fazenda?farmerId=${farmerId}`);
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}farmer/login`,
+        {
+          email,
+          password,
+        }
+      );
+      const { token, farmerId } = response.data;
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("farmerId", String(farmerId));
+      setError("");
+      setIsLoading(false);
+      router.push(`/fazenda?farmerId=${farmerId}`);
+    } catch (error: any) {
+      setIsLoading(false);
+      setError(
+        error.response?.data?.error ||
+          "Erro ao fazer login. Verifique suas credenciais."
+      );
+    }
   };
 
   const newFarmer = () => {
@@ -39,7 +62,7 @@ const LoginForm = () => {
   };
 
   return (
-    <Form onSubmit={handleFormSubmit}>
+    <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
       <FormText type="title">Login:</FormText>
 
       <FormText type="label-large">E-MAIL:</FormText>

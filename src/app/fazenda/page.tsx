@@ -1,5 +1,5 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import useSWR from "swr";
@@ -14,16 +14,23 @@ interface Farm {
   farmerId: number;
 }
 
-const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+const fetcher = async (url: string) => {
+  const token = localStorage.getItem("authToken");
+  const res = await axios.get(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};
 
 const FarmForm = () => {
   const router = useRouter();
-  const params = useSearchParams();
-  const farmerId = params.get("farmerId");
 
   const [farmId, setFarmId] = useState<number>(0);
   const [error, setError] = useState<string>("");
 
+  const farmerId = localStorage.getItem("farmerId");
   const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}farm/farmer/${farmerId}`;
   const {
     data: farmList,
@@ -59,6 +66,7 @@ const FarmForm = () => {
     }
 
     setError("");
+    localStorage.setItem("farmId", String(farmId));
     router.push(`/atividades?farmerId=${farmerId}&farmId=${farmId}`);
   };
 
@@ -68,6 +76,9 @@ const FarmForm = () => {
 
   const logout = () => {
     setFarmId(0);
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("farmerId");
+    localStorage.removeItem("farmId");
     router.push("/");
   };
 
