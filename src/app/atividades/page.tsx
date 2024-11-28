@@ -1,21 +1,20 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import Button from "../components/buttons/page";
 
 const ActivitiesForm = () => {
   const router = useRouter();
-  const params = useSearchParams();
-  const farmerId = params.get("farmerId");
-  const farmId = params.get("farmId");
+  const farmerId = typeof window !== "undefined" ? localStorage.getItem("farmerId") : null;
+  const farmId = typeof window !== "undefined" ? localStorage.getItem("farmId") : null;
 
   const goTo = (atividade: string) => () => {
-    router.push(`${atividade}?farmerId=${farmerId}&farmId=${farmId}`);
+    router.push(`/${atividade}`);
   };
 
   const goBack = () => {
-    router.push(`fazenda?farmerId=${farmerId}`);
+    router.push(`/fazenda`);
   };
 
   return (

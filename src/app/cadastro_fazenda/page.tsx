@@ -1,25 +1,26 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import axios from "axios";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
 import Button from "../components/buttons/page";
-import axios from "axios";
 
 const FarmRegisterForm = () => {
   const router = useRouter();
-  const params = useSearchParams();
-  const farmerId = params.get("farmerId");
-  const farmerIdNumber = farmerId ? parseInt(farmerId) : null;
+  const farmerId =
+    typeof window !== "undefined" ? localStorage.getItem("farmerId") : null;
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
 
   const [farmName, setFarmName] = useState("");
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
   const apiFarmUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}farm`;
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!farmName) {
@@ -28,24 +29,25 @@ const FarmRegisterForm = () => {
     }
 
     setError("");
+    setIsLoading(true);
 
     const farmData = {
       name: farmName,
-      farmerId: farmerIdNumber,
+      farmerId: farmerId,
     };
 
-    setIsLoading(true)
-
-    axios
-      .post(apiFarmUrl, farmData)
-      .then(() => {
-        router.push(`/fazenda?farmerId=${farmerId}`);
-        setIsLoading(false)
-      })
-      .catch(() => {
-        setError("Erro ao cadastrar Fazenda");
-        setIsLoading(false)
+    try {
+      await axios.post(apiFarmUrl, farmData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+      setIsLoading(false);
+      router.push(`/fazenda`);
+    } catch (error: any) {
+      setIsLoading(false);
+      setError(error.response?.data?.error || "Erro ao cadastrar Fazenda");
+    }
   };
 
   const goBack = () => {

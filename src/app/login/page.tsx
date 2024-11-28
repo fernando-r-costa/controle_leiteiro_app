@@ -47,7 +47,7 @@ const LoginForm = () => {
       localStorage.setItem("farmerId", String(farmerId));
       setError("");
       setIsLoading(false);
-      router.push(`/fazenda?farmerId=${farmerId}`);
+      router.push(`/fazenda`);
     } catch (error: any) {
       setIsLoading(false);
       setError(

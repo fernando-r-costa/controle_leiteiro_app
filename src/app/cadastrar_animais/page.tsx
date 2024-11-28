@@ -1,5 +1,5 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR, { mutate } from "swr";
 import axios from "axios";
@@ -17,13 +17,23 @@ export interface Animal {
   farmId: number;
 }
 
-const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+const fetcher = async (url: string) => {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+  const res = await axios.get(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
 
 const CowRegisterForm = () => {
   const router = useRouter();
-  const params = useSearchParams();
-  const farmId = params.get("farmId");
-  const farmIdNumber = farmId ? parseInt(farmId) : null;
+  const farmId =
+    typeof window !== "undefined" ? localStorage.getItem("farmId") : null;
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+  const farmerId =
+    typeof window !== "undefined" ? localStorage.getItem("farmerId") : null;
 
   const [cowName, setCowName] = useState("");
   const [cowNumber, setNumber] = useState("");
@@ -31,24 +41,27 @@ const CowRegisterForm = () => {
   const [expectedDate, setExpectedDate] = useState("");
   const [error, setError] = useState("");
   const [selectedButton, setSelectedButton] = useState("");
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true);
 
   const apiAnimalUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}animal`;
   const {
     data: cowList,
     error: cowListError,
     isLoading: cowListLoading,
-  } = useSWR<Animal[]>(`${apiAnimalUrl}/farm/${farmId}`, fetcher);
+  } = useSWR<Animal[]>(
+    `${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`,
+    fetcher
+  );
 
-    useEffect(() => {
+  useEffect(() => {
     if (cowListLoading) {
-      setIsLoading(false)
+      setIsLoading(false);
     }
     if (cowListError) {
       setError("Erro ao carregar animais");
     } else {
       setError("");
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }, [cowListError, cowListLoading]);
 
@@ -82,17 +95,25 @@ const CowRegisterForm = () => {
       number: cowNumber,
       calvingDate: calvingDate,
       expectedDate: expectedDate || null,
-      farmId: farmIdNumber,
+      farmerId: farmerId ? parseInt(farmerId) : null,
+      farmId: farmId ? parseInt(farmId) : null,
     };
+    console.log("🚀  animalData:", animalData);
 
     try {
       if (!findByNumber) {
-        await axios.post(apiAnimalUrl, animalData);
+        await axios.post(apiAnimalUrl, animalData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
       } else {
-        await axios.put(apiAnimalUrl, animalData);
+        await axios.put(apiAnimalUrl, animalData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
       }
-    } catch (error) {
-      setError("Os dados não foram salvos!");
+    } catch (error: any) {
+      setError(error.response?.data?.error || "Os dados não foram salvos!");
+      setIsLoading(false);
+      return;
     }
 
     if (selectedButton === "Cadastrar outros") {
@@ -102,13 +123,14 @@ const CowRegisterForm = () => {
       setNumber("");
       setCalvingDate("");
       setExpectedDate("");
-      setIsLoading(false)
+      setIsLoading(false);
 
       const topElement = document.getElementById("top");
       topElement?.scrollIntoView({ behavior: "smooth" });
     }
 
     if (selectedButton === "Cadastrar") {
+      setIsLoading(false);
       router.back();
     }
   };

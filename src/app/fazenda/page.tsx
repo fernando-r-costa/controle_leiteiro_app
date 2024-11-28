@@ -15,7 +15,8 @@ interface Farm {
 }
 
 const fetcher = async (url: string) => {
-  const token = localStorage.getItem("authToken");
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
   const res = await axios.get(url, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -30,7 +31,8 @@ const FarmForm = () => {
   const [farmId, setFarmId] = useState<number>(0);
   const [error, setError] = useState<string>("");
 
-  const farmerId = localStorage.getItem("farmerId");
+  const farmerId =
+    typeof window !== "undefined" ? localStorage.getItem("farmerId") : null;
   const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}farm/farmer/${farmerId}`;
   const {
     data: farmList,
@@ -66,19 +68,23 @@ const FarmForm = () => {
     }
 
     setError("");
-    localStorage.setItem("farmId", String(farmId));
-    router.push(`/atividades?farmerId=${farmerId}&farmId=${farmId}`);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("farmId", farmId.toString());
+    }
+    router.push("/atividades");
   };
 
   const newFarm = () => {
-    router.push(`/cadastro_fazenda?farmerId=${farmerId}`);
+    router.push(`/cadastro_fazenda`);
   };
 
   const logout = () => {
     setFarmId(0);
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("farmerId");
-    localStorage.removeItem("farmId");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("farmerId");
+      localStorage.removeItem("farmId");
+    }
     router.push("/");
   };
 
