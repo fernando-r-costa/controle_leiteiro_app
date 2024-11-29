@@ -30,6 +30,7 @@ const FarmForm = () => {
 
   const [farmId, setFarmId] = useState<number>(0);
   const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const farmerId =
     typeof window !== "undefined" ? localStorage.getItem("farmerId") : null;
@@ -37,7 +38,7 @@ const FarmForm = () => {
   const {
     data: farmList,
     error: farmError,
-    isLoading,
+    isLoading: farmListLoading,
   } = useSWR<Farm[]>(apiUrl, fetcher);
 
   useEffect(() => {
@@ -68,6 +69,7 @@ const FarmForm = () => {
     }
 
     setError("");
+    setIsLoading(true);
     if (typeof window !== "undefined") {
       localStorage.setItem("farmId", farmId.toString());
     }
@@ -75,11 +77,12 @@ const FarmForm = () => {
   };
 
   const newFarm = () => {
+    setIsLoading(true);
     router.push(`/cadastro_fazenda`);
   };
 
   const logout = () => {
-    setFarmId(0);
+    setIsLoading(true);
     if (typeof window !== "undefined") {
       localStorage.removeItem("authToken");
       localStorage.removeItem("farmerId");
@@ -87,6 +90,10 @@ const FarmForm = () => {
     }
     router.push("/");
   };
+  
+  useEffect(() => {
+    setIsLoading(false);
+  }, []);
 
   return (
     <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>

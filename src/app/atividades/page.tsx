@@ -1,24 +1,30 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import Button from "../components/buttons/page";
 
 const ActivitiesForm = () => {
   const router = useRouter();
-  const farmerId = typeof window !== "undefined" ? localStorage.getItem("farmerId") : null;
-  const farmId = typeof window !== "undefined" ? localStorage.getItem("farmId") : null;
+  const [isLoading, setIsLoading] = useState<boolean>(true)
 
   const goTo = (atividade: string) => () => {
+    setIsLoading(true)
     router.push(`/${atividade}`);
   };
 
   const goBack = () => {
+    setIsLoading(true)
     router.push(`/fazenda`);
   };
 
+  useEffect(() => {
+    setIsLoading(false);
+  }, []);
+
   return (
-    <Form>
+    <Form animatePulse={isLoading}>
       <FormText type="title">SELECIONE UMA ATIVIDADE:</FormText>
 
       <Button type="button" onClick={goTo("controle_leiteiro")}>

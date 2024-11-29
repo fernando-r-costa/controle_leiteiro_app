@@ -54,9 +54,7 @@ const CowRegisterForm = () => {
   );
 
   useEffect(() => {
-    if (cowListLoading) {
-      setIsLoading(false);
-    }
+    setIsLoading(cowListLoading);
     if (cowListError) {
       setError("Erro ao carregar animais");
     } else {
@@ -98,7 +96,6 @@ const CowRegisterForm = () => {
       farmerId: farmerId ? parseInt(farmerId) : null,
       farmId: farmId ? parseInt(farmId) : null,
     };
-    console.log("🚀  animalData:", animalData);
 
     try {
       if (!findByNumber) {
@@ -117,7 +114,7 @@ const CowRegisterForm = () => {
     }
 
     if (selectedButton === "Cadastrar outros") {
-      mutate(`${apiAnimalUrl}/farm/${farmId}`);
+      await mutate(`${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`);
 
       setCowName("");
       setNumber("");
@@ -130,14 +127,18 @@ const CowRegisterForm = () => {
     }
 
     if (selectedButton === "Cadastrar") {
-      setIsLoading(false);
-      router.back();
+      router.push("/atividades");
     }
   };
 
   const goBack = () => {
+    setIsLoading(true);
     router.back();
   };
+
+  useEffect(() => {
+    setIsLoading(false);
+  }, []);
 
   return (
     <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>

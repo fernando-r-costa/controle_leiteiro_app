@@ -1,19 +1,21 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
 import Button from "../components/buttons/page";
-import { useState } from "react";
 
 const FarmerRegisterForm = () => {
   const router = useRouter();
 
-  const [name, setName] = useState("Fernando Costa");
-  const [email, setEmail] = useState("teste@teste.com");
-  const [password, setPassword] = useState("teste1234");
-  const [phone, setPhone] = useState("11987654321");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   const handlePhoneChange = (
     e:
@@ -29,7 +31,7 @@ const FarmerRegisterForm = () => {
     }
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -59,21 +61,39 @@ const FarmerRegisterForm = () => {
     }
 
     setError("");
-    console.log(
-      "🚀 name: " + name,
-      "email: " + email,
-      "password: " + password,
-      "phone: " + phone
-    );
-    router.back();
+    setIsLoading(true);
+
+    const phoneFormatted = phone.replace(/\D/g, "");
+    const farmerData = {
+      name,
+      email,
+      password,
+      phone: phoneFormatted,
+    };
+
+    try {
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}farmer/register`,
+        farmerData
+      );
+      setIsLoading(false);
+      router.push("/login");
+    } catch (error: any) {
+      setIsLoading(false);
+      setError(error.response?.data?.error || "Erro ao cadastrar produtor");
+    }
   };
 
   const goBack = () => {
     router.back();
   };
 
+  useEffect(() => {
+    setIsLoading(false);
+  }, []);
+
   return (
-    <Form onSubmit={handleFormSubmit}>
+    <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
       <FormText type="title">CADASTRAR NOVO PRODUTOR:</FormText>
 
       <FormText type="label-large">NOME COMPLETO:</FormText>

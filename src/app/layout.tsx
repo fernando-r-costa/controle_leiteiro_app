@@ -3,6 +3,7 @@ import "./globals.css";
 import { Suspense } from "react";
 import Banner from "./components/banner/page";
 import Footer from "./components/footer/page";
+import FormText from "./components/texts/page";
 
 const APP_NAME = "Controle Leiteiro App";
 const APP_DEFAULT_TITLE = "APP";
@@ -58,7 +59,13 @@ export default function RootLayout({
     <html lang="pt-br">
       <body className="flex flex-col h-dvh font-primaryFont text-[14px] bg-secondary-color text-dark-color">
         <Banner />
-        <Suspense>
+        <Suspense
+          fallback={
+            <div className="flex-grow overflow-y-auto mx-auto mt-8 animate-pulse">
+              <FormText type="title">Carregando...</FormText>
+            </div>
+          }
+        >
           <main className="flex-grow overflow-y-auto">{children}</main>
         </Suspense>
         <Footer />

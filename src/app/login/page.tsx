@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
@@ -13,7 +13,7 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +46,6 @@ const LoginForm = () => {
       localStorage.setItem("authToken", token);
       localStorage.setItem("farmerId", String(farmerId));
       setError("");
-      setIsLoading(false);
       router.push(`/fazenda`);
     } catch (error: any) {
       setIsLoading(false);
@@ -58,8 +57,13 @@ const LoginForm = () => {
   };
 
   const newFarmer = () => {
+    setIsLoading(true);
     router.push("/cadastro_produtor");
   };
+
+  useEffect(() => {
+    setIsLoading(false);
+  }, []);
 
   return (
     <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>

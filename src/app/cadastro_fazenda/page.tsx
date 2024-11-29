@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
@@ -16,7 +16,7 @@ const FarmRegisterForm = () => {
 
   const [farmName, setFarmName] = useState("");
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const apiFarmUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}farm`;
 
@@ -42,7 +42,6 @@ const FarmRegisterForm = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      setIsLoading(false);
       router.push(`/fazenda`);
     } catch (error: any) {
       setIsLoading(false);
@@ -51,8 +50,13 @@ const FarmRegisterForm = () => {
   };
 
   const goBack = () => {
+    setIsLoading(true);
     router.back();
   };
+
+  useEffect(() => {
+    setIsLoading(false);
+  }, []);
 
   return (
     <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
