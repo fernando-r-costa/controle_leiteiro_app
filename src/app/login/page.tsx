@@ -7,13 +7,18 @@ import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
 import Button from "../components/buttons/page";
 
-const LoginForm = () => {
+interface  Login {
+  token: string;
+  farmerId: number;
+}
+
+const LoginForm: React.FC = () => {
   const router = useRouter();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +40,7 @@ const LoginForm = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
+      const response = await axios.post<Login>(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}farmer/login`,
         {
           email,

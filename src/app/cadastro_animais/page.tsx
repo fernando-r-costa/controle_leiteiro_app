@@ -16,7 +16,7 @@ const ActivitiesForm: React.FC = () => {
 
   const goBack = () => {
     setIsLoading(true);
-    router.push(`/fazenda`);
+    router.push(`/atividades`);
   };
 
   useEffect(() => {
@@ -25,16 +25,13 @@ const ActivitiesForm: React.FC = () => {
 
   return (
     <Form animatePulse={isLoading}>
-      <FormText type="title">SELECIONE UMA ATIVIDADE:</FormText>
+      <FormText type="title">CADASTRO DE ANIMAIS:</FormText>
 
-      <Button type="button" onClick={goTo("cadastro_animais")}>
-        Cadastro de animais
+      <Button type="button" onClick={goTo("atualiza_animal")}>
+        Atualizar animal
       </Button>
-      <Button type="button" onClick={goTo("controle_leiteiro")}>
-        Controle leiteiro
-      </Button>
-      <Button type="button" onClick={goTo("relatorios")}>
-        Relatórios
+      <Button type="button" onClick={goTo("novo_animal")}>
+        Cadastrar novo animal
       </Button>
       <Button type="button" onClick={goBack}>
         Voltar

@@ -7,7 +7,7 @@ import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
 import Button from "../components/buttons/page";
-import { Animal } from "../cadastrar_animais/page";
+import { Animal } from "../atualiza_animal/page";
 
 interface DairyProductionRecord {
   registerId: number;
@@ -37,7 +37,7 @@ const IndividualProductionForm = () => {
   const [error, setError] = useState("");
   const [animalId, setAnimalId] = useState<number>();
   const [registerId, setRegisterID] = useState<number>();
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true);
 
   const apiAnimalUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}animal`;
   const {
@@ -63,16 +63,16 @@ const IndividualProductionForm = () => {
       setError("");
     }
   }, [cowListError]);
-  
+
   useEffect(() => {
     if (dairyControlIsLoading) {
-      setIsLoading(false)
+      setIsLoading(false);
     }
     if (dairyControlError) {
       setError("Erro ao carregar controle de leite");
     } else {
       setError("");
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }, [dairyControlError, dairyControlIsLoading]);
 
@@ -115,7 +115,7 @@ const IndividualProductionForm = () => {
       setError("Por favor, insira uma pesagem.");
       return;
     }
-    
+
     setError("");
     setIsLoading(true);
 
@@ -150,7 +150,7 @@ const IndividualProductionForm = () => {
     setWeightMilking1("");
     setWeightMilking2("");
     setWeightMilking3("");
-    setIsLoading(false)
+    setIsLoading(false);
 
     setTimeout(() => {
       cowNumberRef.current?.focus();

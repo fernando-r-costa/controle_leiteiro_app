@@ -6,14 +6,14 @@ import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
 import Button from "../components/buttons/page";
 
-const ProductionDateForm = () => {
+const ProductionDateForm: React.FC = () => {
   const router = useRouter();
   const params = useSearchParams();
   const farmerId = params.get("farmerId");
   const farmId = params.get("farmId");
 
-  const [controlDate, setControlDate] = useState("");
-  const [error, setError] = useState("");
+  const [controlDate, setControlDate] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();

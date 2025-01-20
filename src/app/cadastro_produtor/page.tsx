@@ -7,15 +7,22 @@ import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
 import Button from "../components/buttons/page";
 
-const FarmerRegisterForm = () => {
+interface Farmer {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+}
+
+const FarmerRegisterForm: React.FC = () => {
   const router = useRouter();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [phone, setPhone] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const handlePhoneChange = (
     e:
@@ -64,7 +71,7 @@ const FarmerRegisterForm = () => {
     setIsLoading(true);
 
     const phoneFormatted = phone.replace(/\D/g, "");
-    const farmerData = {
+    const farmerData: Farmer = {
       name,
       email,
       password,
@@ -76,7 +83,6 @@ const FarmerRegisterForm = () => {
         `${process.env.NEXT_PUBLIC_API_BASE_URL}farmer/register`,
         farmerData
       );
-      setIsLoading(false);
       router.push("/login");
     } catch (error: any) {
       setIsLoading(false);
@@ -85,6 +91,7 @@ const FarmerRegisterForm = () => {
   };
 
   const goBack = () => {
+    setIsLoading(true);
     router.back();
   };
 

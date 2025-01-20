@@ -25,21 +25,18 @@ const fetcher = async (url: string) => {
   return res.data;
 };
 
-const FarmForm = () => {
+const FarmForm: React.FC = () => {
   const router = useRouter();
 
   const [farmId, setFarmId] = useState<number>(0);
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [showMessage, setShowMessage] = useState<boolean>(false);
 
   const farmerId =
     typeof window !== "undefined" ? localStorage.getItem("farmerId") : null;
   const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}farm/farmer/${farmerId}`;
-  const {
-    data: farmList,
-    error: farmError,
-    isLoading: farmListLoading,
-  } = useSWR<Farm[]>(apiUrl, fetcher);
+  const { data: farmList, error: farmError } = useSWR<Farm[]>(apiUrl, fetcher);
 
   useEffect(() => {
     if (farmError) {
@@ -51,6 +48,7 @@ const FarmForm = () => {
   useEffect(() => {
     if (farmList && farmList.length > 0) {
       setFarmId(Number(farmList[0].farmId));
+      setIsLoading(false);
     }
   }, [farmList]);
 
@@ -82,47 +80,58 @@ const FarmForm = () => {
   };
 
   const logout = () => {
-    setIsLoading(true);
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("farmerId");
-      localStorage.removeItem("farmId");
+    const confirmLogout = window.confirm(
+      "Tem certeza que deseja sair da sua conta?"
+    );
+    if (confirmLogout) {
+      setShowMessage(true);
+      setTimeout(() => {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("farmerId");
+          localStorage.removeItem("farmId");
+        }
+        router.push("/");
+      }, 3000);
     }
-    router.push("/");
   };
-  
-  useEffect(() => {
-    setIsLoading(false);
-  }, []);
 
   return (
     <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
-      <FormText type="title">FAZENDA:</FormText>
+      {showMessage ? (
+        <div className="flex-grow overflow-y-auto mx-auto mt-8 animate-pulse">
+        <FormText type="title">Até logo!</FormText>
+      </div>
+      ) : (
+        <>
+          <FormText type="title">FAZENDA:</FormText>
 
-      <FormText type="label-large">
-        Qual o nome da Fazenda ou do Retiro onde será feita a medição:
-      </FormText>
+          <FormText type="label-large">
+            Qual o nome da Fazenda ou do Retiro onde será feita a medição:
+          </FormText>
 
-      <FormInput
-        size="select"
-        type="select"
-        value={farmId}
-        onChange={handleSelectChange}
-        options={farmList?.map((farm) => ({
-          label: farm.name,
-          value: String(farm.farmId),
-        }))}
-      />
+          <FormInput
+            size="select"
+            type="select"
+            value={farmId}
+            onChange={handleSelectChange}
+            options={farmList?.map((farm) => ({
+              label: farm.name,
+              value: String(farm.farmId),
+            }))}
+          />
 
-      {error && <FormText type="error">{error}</FormText>}
+          {error && <FormText type="error">{error}</FormText>}
 
-      <Button type="submit">Selecionar</Button>
-      <Button type="button" onClick={newFarm}>
-        Nova Fazenda
-      </Button>
-      <Button type="button" onClick={logout}>
-        Sair
-      </Button>
+          <Button type="submit">Selecionar</Button>
+          <Button type="button" onClick={newFarm}>
+            Nova Fazenda
+          </Button>
+          <Button type="button" onClick={logout}>
+            Sair
+          </Button>
+        </>
+      )}
     </Form>
   );
 };

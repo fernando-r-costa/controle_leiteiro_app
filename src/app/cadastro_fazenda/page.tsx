@@ -7,7 +7,12 @@ import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
 import Button from "../components/buttons/page";
 
-const FarmRegisterForm = () => {
+interface FarmData {
+  name: string;
+  farmerId: string | null;
+}
+
+const FarmRegisterForm: React.FC = () => {
   const router = useRouter();
   const farmerId =
     typeof window !== "undefined" ? localStorage.getItem("farmerId") : null;
@@ -31,7 +36,7 @@ const FarmRegisterForm = () => {
     setError("");
     setIsLoading(true);
 
-    const farmData = {
+    const farmData: FarmData = {
       name: farmName,
       farmerId: farmerId,
     };
