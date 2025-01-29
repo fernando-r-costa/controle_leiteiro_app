@@ -1,25 +1,43 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import Form from "../components/form/page";
 import Button from "../components/buttons/page";
 import FormText from "../components/texts/page";
 
-const EndForm = () => {
+const EndForm: React.FC = () => {
   const router = useRouter();
-  const params = useSearchParams();
-  const farmerId = params.get("farmerId");
-  const farmId = params.get("farmId");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push(`/atividades?farmerId=${farmerId}&farmId=${farmId}`);
+    setIsLoading(true);
+
+    setTimeout(() => {
+      localStorage.removeItem('controlDate');
+      localStorage.removeItem('newControl');
+      localStorage.removeItem('controlDateList');
+
+      router.push("/atividades");
+    }, 5000);
   };
 
   return (
-    <Form onSubmit={handleFormSubmit}>
-      <FormText type={"title"}>Pesagem Finalizada!</FormText>
+    <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
+      <FormText type="title">Pesagem Finalizada!</FormText>
+      <FormText type="label-short">Seus dados foram salvos com sucesso.</FormText>
 
-      <Button type="submit">Encerrar</Button>
+      {!isLoading && (
+        <Button type="submit">Encerrar</Button>
+      )}
     </Form>
   );
 };

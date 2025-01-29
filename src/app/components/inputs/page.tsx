@@ -13,7 +13,7 @@ type InputProps = {
   options?: { label: string; value: string | number }[];
 };
 
-const FormInput = forwardRef<HTMLInputElement, InputProps>(
+const FormInput = forwardRef<HTMLInputElement | HTMLSelectElement, InputProps>(
   ({ type, placeholder, value, onChange, size, options }, ref) => {
     switch (size) {
       case "large":
@@ -24,7 +24,7 @@ const FormInput = forwardRef<HTMLInputElement, InputProps>(
             value={value}
             onChange={onChange}
             className="text-[1.4em] p-2 outline-none rounded-lg shadow-lg cursor-pointer mb-8 focus:shadow-tertiary-color hover:shadow-tertiary-color"
-            ref={ref}
+            ref={ref as React.RefObject<HTMLInputElement>}
           />
         );
       case "short":
@@ -43,6 +43,7 @@ const FormInput = forwardRef<HTMLInputElement, InputProps>(
             value={value}
             onChange={onChange}
             className="text-[1.4em] p-2 outline-none rounded-lg shadow-lg cursor-pointer mb-8 focus:shadow-tertiary-color hover:shadow-tertiary-color"
+            ref={ref as React.RefObject<HTMLSelectElement>}
           >
             {options?.map((option, index) => (
               <option key={index} value={option.value}>

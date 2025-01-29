@@ -52,11 +52,11 @@ const CowUpdateForm: React.FC = () => {
   } = useSWR<Animal[]>(
     `${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`,
     fetcher,
-    { 
+    {
       dedupingInterval: 0,
       refreshInterval: 0,
       revalidateOnFocus: false,
-      revalidateOnMount: true 
+      revalidateOnMount: true,
     }
   );
 
@@ -66,6 +66,18 @@ const CowUpdateForm: React.FC = () => {
 
   const formatExpectedDateForBackend = (date: string | null): string | null => {
     return date === "" ? null : date;
+  };
+
+  const getPregnancyStatus = (expectedDate: string | null): string => {
+    if (!expectedDate) return "";
+
+    const today = new Date();
+    const expected = new Date(expectedDate);
+    const diffTime = expected.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays <= 60 && diffDays > 0) return "(P+)";
+    return "(P)";
   };
 
   useEffect(() => {
@@ -209,7 +221,7 @@ const CowUpdateForm: React.FC = () => {
           ?.slice()
           .sort((a, b) => parseInt(a.number) - parseInt(b.number))
           .map((cow) => ({
-            label: `${cow.number} - ${cow.name || ""}`,
+            label: `${cow.number} - ${cow.name || ""} ${getPregnancyStatus(cow.expectedDate ?? null)}`,
             value: `${cow.number}`,
           }))}
       />

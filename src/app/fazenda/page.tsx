@@ -87,9 +87,7 @@ const FarmForm: React.FC = () => {
       setShowMessage(true);
       setTimeout(() => {
         if (typeof window !== "undefined") {
-          localStorage.removeItem("authToken");
-          localStorage.removeItem("farmerId");
-          localStorage.removeItem("farmId");
+          localStorage.clear();
         }
         router.push("/");
       }, 3000);

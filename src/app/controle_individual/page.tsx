@@ -1,13 +1,24 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import useSWR, { mutate } from "swr";
 import axios from "axios";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
 import Button from "../components/buttons/page";
-import { Animal } from "../atualiza_animal/page";
+
+interface Animal {
+  animalId: number;
+  name: string;
+  number: string;
+  calvingDate: string;
+  expectedDate?: string;
+  farmId: number;
+  farm: {
+    farmerId: number;
+  };
+}
 
 interface DairyProductionRecord {
   registerId: number;
@@ -18,16 +29,32 @@ interface DairyProductionRecord {
   weightMilking3?: string;
   dim?: number;
   dtc?: number;
+  animal: Animal;
 }
 
-const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+const fetcher = async (url: string) => {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+  const res = await axios.get(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
 
-const IndividualProductionForm = () => {
+const IndividualProductionForm: React.FC = () => {
   const router = useRouter();
-  const params = useSearchParams();
-  const farmerId = params.get("farmerId");
-  const farmId = params.get("farmId");
-  const controlDate = params.get("controlDate");
+  const farmerId =
+    typeof window !== "undefined" ? localStorage.getItem("farmerId") : null;
+  const farmId =
+    typeof window !== "undefined" ? localStorage.getItem("farmId") : null;
+  const controlDate =
+    typeof window !== "undefined" ? localStorage.getItem("controlDate") : null;
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+  const isNewControl =
+    typeof window !== "undefined"
+      ? localStorage.getItem("newControl") === "true"
+      : false;
 
   const [cowNumber, setCowNumber] = useState("");
   const [cowName, setCowName] = useState("");
@@ -38,43 +65,116 @@ const IndividualProductionForm = () => {
   const [animalId, setAnimalId] = useState<number>();
   const [registerId, setRegisterID] = useState<number>();
   const [isLoading, setIsLoading] = useState(true);
+  const selectRef = useRef<HTMLSelectElement>(null);
 
   const apiAnimalUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}animal`;
-  const {
-    data: cowList,
-    error: cowListError,
-    isLoading: cowListIsLoading,
-  } = useSWR<Animal[]>(`${apiAnimalUrl}/farm/${farmId}`, fetcher);
-
   const apiDairyControlUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}dairy-control`;
+
   const {
-    data: dairyControl,
+    data: dairyControlRecords,
     error: dairyControlError,
-    isLoading: dairyControlIsLoading,
+    isLoading: dairyControlLoading,
   } = useSWR<DairyProductionRecord[]>(
-    `${apiDairyControlUrl}/date/${controlDate}`,
-    fetcher
+    `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${controlDate}`,
+    fetcher,
+    {
+      dedupingInterval: 0,
+      refreshInterval: 5 * 60 * 1000,
+      revalidateOnFocus: false,
+      revalidateOnMount: true,
+    }
   );
 
-  useEffect(() => {
-    if (cowListError) {
-      setError("Erro ao carregar animais");
-    } else {
-      setError("");
+  const {
+    data: animalList,
+    error: animalListError,
+    isLoading: animalListLoading,
+  } = useSWR<Animal[]>(
+    `${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`,
+    fetcher,
+    {
+      dedupingInterval: 0,
+      refreshInterval: 5 * 60 * 1000,
+      revalidateOnFocus: false,
+      revalidateOnMount: true,
     }
-  }, [cowListError]);
+  );
+
+  const sortByNumber = (a: string, b: string) =>
+    a.localeCompare(b, undefined, { numeric: true });
+
+  const getPregnancyStatus = (expectedDate: string | undefined): string => {
+    if (!expectedDate) return "";
+
+    const today = new Date();
+    const expected = new Date(expectedDate);
+    const diffTime = expected.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays <= 60) return "(P+)";
+    return "(P)";
+  };
+
+  const findAnimalData = useCallback(
+    (number: string) => {
+      const records = Array.isArray(dairyControlRecords)
+        ? dairyControlRecords
+        : [];
+
+      const existingRecord = records.find(
+        (record) => record?.animal?.number === number
+      );
+      if (existingRecord) return existingRecord;
+
+      return animalList?.find((animal) => animal.number === number);
+    },
+    [dairyControlRecords, animalList]
+  );
+
+  const getSelectOptions = () => {
+    const records = Array.isArray(dairyControlRecords)
+      ? dairyControlRecords
+      : [];
+
+    return [
+      ...(animalList || [])
+        .sort((a, b) => sortByNumber(a.number, b.number))
+        .map((animal) => ({
+          label: `${animal.number} - ${animal.name} ${getPregnancyStatus(
+            animal.expectedDate
+          )}${
+            records.some((record) => record.animal.number === animal.number)
+              ? " (Anotado)"
+              : ""
+          }`,
+          value: animal.number,
+        })),
+    ];
+  };
 
   useEffect(() => {
-    if (dairyControlIsLoading) {
-      setIsLoading(false);
+    if (dairyControlLoading || animalListLoading) {
+      setIsLoading(true);
+      return;
     }
+
     if (dairyControlError) {
       setError("Erro ao carregar controle de leite");
-    } else {
-      setError("");
       setIsLoading(false);
     }
-  }, [dairyControlError, dairyControlIsLoading]);
+
+    if (animalListError) {
+      setError("Erro ao carregar animais");
+      setIsLoading(false);
+    }
+
+    setIsLoading(false);
+  }, [
+    dairyControlError,
+    dairyControlLoading,
+    animalListError,
+    animalListLoading,
+  ]);
 
   useEffect(() => {
     if (!cowNumber) {
@@ -86,22 +186,71 @@ const IndividualProductionForm = () => {
       return;
     }
 
-    const cow = cowList?.find((cow) => cow.number === cowNumber);
-    setAnimalId(cow?.animalId || 0);
-    setCowName(cow?.name || "");
-  }, [cowNumber, cowList]);
+    const animalData = findAnimalData(cowNumber);
+
+    if (animalData) {
+      if ("animal" in animalData) {
+        const record = animalData as DairyProductionRecord;
+        setAnimalId(record.animal.animalId);
+        setCowName(record.animal.name);
+        setRegisterID(record.registerId);
+        setWeightMilking1(record.weightMilking1);
+        setWeightMilking2(record.weightMilking2 || "");
+        setWeightMilking3(record.weightMilking3 || "");
+      } else {
+        const animal = animalData as Animal;
+        setAnimalId(animal.animalId);
+        setCowName(animal.name);
+        setRegisterID(undefined);
+        setWeightMilking1("");
+        setWeightMilking2("");
+        setWeightMilking3("");
+      }
+    } else {
+      setAnimalId(undefined);
+      setCowName("");
+      setRegisterID(undefined);
+      setWeightMilking1("");
+      setWeightMilking2("");
+      setWeightMilking3("");
+    }
+  }, [cowNumber, findAnimalData]);
 
   useEffect(() => {
-    if (!animalId || !dairyControl) return;
+    if (!isLoading && animalList && animalList.length > 0) {
+      const sortedAnimals = [...animalList].sort((a, b) =>
+        sortByNumber(a.number, b.number)
+      );
 
-    const register = dairyControl.find((dairy) => dairy.animalId === animalId);
-    setRegisterID(register?.registerId);
-    setWeightMilking1(register?.weightMilking1 || "");
-    setWeightMilking2(register?.weightMilking2 || "");
-    setWeightMilking3(register?.weightMilking3 || "");
-  }, [animalId, dairyControl]);
+      if (
+        Array.isArray(dairyControlRecords) &&
+        dairyControlRecords.length > 0
+      ) {
+        const sortedRecords = [...dairyControlRecords].sort((a, b) =>
+          sortByNumber(a.animal.number, b.animal.number)
+        );
+        const firstRecord = sortedRecords[0];
 
-  const cowNumberRef = useRef<HTMLInputElement>(null);
+        setCowNumber(firstRecord.animal.number);
+        setCowName(firstRecord.animal.name);
+        setAnimalId(firstRecord.animal.animalId);
+        setRegisterID(firstRecord.registerId);
+        setWeightMilking1(firstRecord.weightMilking1);
+        setWeightMilking2(firstRecord.weightMilking2 || "");
+        setWeightMilking3(firstRecord.weightMilking3 || "");
+      } else {
+        const firstAnimal = sortedAnimals[0];
+
+        setCowNumber(firstAnimal.number);
+        setCowName(firstAnimal.name);
+        setAnimalId(firstAnimal.animalId);
+        setRegisterID(undefined);
+        setWeightMilking1("");
+        setWeightMilking2("");
+        setWeightMilking3("");
+      }
+    }
+  }, [isLoading, animalList, dairyControlRecords]);
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,80 +269,215 @@ const IndividualProductionForm = () => {
     setIsLoading(true);
 
     try {
-      if (!registerId) {
-        const dairyControlRegisterPost = {
-          dairyDateControl: controlDate,
-          animalId: animalId,
-          weightMilking1: weightMilking1,
-          weightMilking2: weightMilking2 || null,
-          weightMilking3: weightMilking3 || null,
-        };
-        await axios.post(`${apiDairyControlUrl}`, dairyControlRegisterPost);
-      } else {
-        const dairyControlRegisterPut = {
-          registerId: registerId,
-          dairyDateControl: controlDate,
-          animalId: animalId,
-          weightMilking1: weightMilking1,
-          weightMilking2: weightMilking2 || null,
-          weightMilking3: weightMilking3 || null,
-        };
-        await axios.put(`${apiDairyControlUrl}`, dairyControlRegisterPut);
+      const animalData = findAnimalData(cowNumber);
+      if (!animalData) {
+        setError("Animal não encontrado");
+        setIsLoading(false);
+        return;
       }
-    } catch (error) {
-      setError("Erro ao salvar controle de leite!");
+
+      const dairyControlRegister = {
+        ...(registerId && { registerId }),
+        dairyDateControl: controlDate,
+        animalId: animalId,
+        weightMilking1: weightMilking1,
+        weightMilking2: weightMilking2 || "0.0",
+        weightMilking3: weightMilking3 || "0.0",
+        dim:
+          "dim" in animalData
+            ? (animalData as DairyProductionRecord).dim || 0
+            : 0,
+        dtc:
+          "dtc" in animalData
+            ? (animalData as DairyProductionRecord).dtc || 0
+            : 0,
+        farmerId: parseInt(farmerId || "0"),
+      };
+
+      if (!registerId) {
+        await axios.post(`${apiDairyControlUrl}`, dairyControlRegister, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        await axios.put(`${apiDairyControlUrl}`, dairyControlRegister, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+
+      await mutate(
+        `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${controlDate}`
+      );
+
+      setCowNumber("");
+      setCowName("");
+      setWeightMilking1("");
+      setWeightMilking2("");
+      setWeightMilking3("");
+
+      setTimeout(() => {
+        selectRef.current?.focus();
+      }, 500);
+
+      const topElement = document.getElementById("top");
+      topElement?.scrollIntoView({ behavior: "smooth" });
+    } catch (error: any) {
+      setError(
+        error.response?.data?.error || "Erro ao salvar controle de leite!"
+      );
     }
 
-    mutate(`${apiDairyControlUrl}/date/${controlDate}`);
-    setCowNumber("");
-    setCowName("");
-    setWeightMilking1("");
-    setWeightMilking2("");
-    setWeightMilking3("");
     setIsLoading(false);
-
-    setTimeout(() => {
-      cowNumberRef.current?.focus();
-    }, 500);
-
-    const topElement = document.getElementById("top");
-    topElement?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const finishProductionControl = () => {
-    if (
-      cowNumber !== "" ||
-      cowName !== "" ||
-      weightMilking1 !== "" ||
-      weightMilking2 !== "" ||
-      weightMilking3 !== ""
-    ) {
-      setError("Por favor, salve os dados antes de finalizar.");
+  const handleSelectChange = (
+    e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+  ) => {
+    const selectedNumber = e.target.value;
+    setCowNumber(selectedNumber);
+  };
+
+  const handleDelete = async () => {
+    if (!registerId || !farmerId || !farmId || !animalId) {
+      setError("Informações necessárias para excluir não estão disponíveis.");
       return;
     }
-    router.push(`/controle_final?farmerId=${farmerId}&farmId=${farmId}`);
+
+    const confirmDelete = window.confirm(
+      "Tem certeza que deseja excluir esta pesagem?"
+    );
+    if (!confirmDelete) return;
+
+    setError("");
+    setIsLoading(true);
+
+    try {
+      await axios.delete(
+        `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/animal/${animalId}/${registerId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      await mutate(
+        `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${controlDate}`
+      );
+
+      setCowNumber("");
+      setCowName("");
+      setWeightMilking1("");
+      setWeightMilking2("");
+      setWeightMilking3("");
+      setAnimalId(undefined);
+      setRegisterID(undefined);
+
+      setTimeout(() => {
+        selectRef.current?.focus();
+      }, 500);
+      const topElement = document.getElementById("top");
+      topElement?.scrollIntoView({ behavior: "smooth" });
+
+      if (dairyControlRecords && dairyControlRecords.length > 1) {
+        const nextRecord = dairyControlRecords.find(
+          (record) => record.registerId !== registerId
+        );
+        if (nextRecord) {
+          setCowNumber(nextRecord.animal.number);
+          setCowName(nextRecord.animal.name);
+          setAnimalId(nextRecord.animal.animalId);
+          setRegisterID(nextRecord.registerId);
+          setWeightMilking1(nextRecord.weightMilking1);
+          setWeightMilking2(nextRecord.weightMilking2 || "");
+          setWeightMilking3(nextRecord.weightMilking3 || "");
+        }
+      }
+    } catch (error: any) {
+      setError(error.response?.data?.error || "Erro ao excluir pesagem!");
+    }
+
+    setIsLoading(false);
+  };
+
+  const finishProductionControl = async () => {
+    if (cowNumber !== "" && weightMilking1 !== "") {
+      try {
+        await handleFormSubmit(new Event("submit") as any);
+      } catch (error) {
+        return;
+      }
+    }
+
+    try {
+      const updatedRecords = await axios.get(
+        `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${controlDate}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const records = updatedRecords.data;
+
+      const animaisNaoPesados = animalList?.filter(
+        (animal) =>
+          !records.some(
+            (record: DairyProductionRecord) =>
+              record.animal.number === animal.number
+          )
+      );
+
+      const totalAnimais = animalList?.length || 0;
+      const totalPesados = records.length || 0;
+
+      let mensagem = `\nTotal de animais: ${totalAnimais}`;
+      mensagem += `\nAnimais pesados: ${totalPesados}`;
+
+      if (animaisNaoPesados && animaisNaoPesados.length > 0) {
+        mensagem += `\n\nAinda faltam ${animaisNaoPesados.length} animais:`;
+        animaisNaoPesados
+          .sort((a, b) => parseInt(a.number) - parseInt(b.number))
+          .forEach((animal) => {
+            mensagem += `\n→ ${animal.number} - ${animal.name}`;
+          });
+        mensagem += "\n\nDeseja finalizar mesmo assim?";
+      } else {
+        mensagem += "\n\nTodos os animais foram pesados. Deseja finalizar?";
+      }
+
+      const confirmFinish = window.confirm(mensagem);
+
+      if (confirmFinish) {
+        setIsLoading(true);
+        router.push(`/controle_final`);
+      }
+    } catch (error) {
+      setError("Erro ao verificar dados finais");
+    }
+  };
+
+  const goBack = () => {
+    setIsLoading(true);
+    router.push("/controle_leiteiro");
   };
 
   return (
     <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
       <div id="top"></div>
-      <FormText type="title">Insira os dados do animal:</FormText>
+      <FormText type="title">
+        {isNewControl
+          ? "Novo Controle Leiteiro"
+          : "Atualizar Controle Leiteiro"}
+      </FormText>
+      <FormText type="label-short">{`Data: ${
+        controlDate ? new Date(controlDate).toLocaleDateString("pt-BR") : ""
+      }`}</FormText>
 
-      <FormText type="label-large">Número</FormText>
+      <FormText type="label-large">Selecione o animal:</FormText>
       <FormInput
-        size="large"
-        type={"number"}
+        size="select"
+        type="select"
         value={cowNumber}
-        onChange={(e) => setCowNumber(e.target.value)}
-        ref={cowNumberRef}
-      />
-
-      <FormText type="label-large">Nome:</FormText>
-      <FormInput
-        size="large"
-        type={"text"}
-        value={cowName}
-        onChange={(e) => setCowName(e.target.value)}
+        onChange={handleSelectChange}
+        options={getSelectOptions()}
+        ref={selectRef}
       />
 
       <ul className="flex gap-4 flex-nowrap mb-8">
@@ -228,9 +512,19 @@ const IndividualProductionForm = () => {
 
       {error && <FormText type="error">{error}</FormText>}
 
-      <Button type="submit">Próximo Animal</Button>
+      <Button type="submit">
+        {registerId ? "Atualizar Pesagem" : "Incluir Pesagem"}
+      </Button>
+      {registerId && (
+        <Button type="button" onClick={handleDelete}>
+          Excluir Pesagem
+        </Button>
+      )}
       <Button type="button" onClick={finishProductionControl}>
         Finalizar Pesagem
+      </Button>
+      <Button type="button" onClick={goBack}>
+        Voltar
       </Button>
     </Form>
   );
