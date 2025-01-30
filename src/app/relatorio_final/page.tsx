@@ -1,5 +1,5 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import axios from "axios";
@@ -7,6 +7,18 @@ import Table from "../components/table/page";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import Button from "../components/buttons/page";
+
+interface Farm {
+  farmId: number;
+  name: string;
+}
+
+interface Animal {
+  animalId: number;
+  name: string;
+  number: string;
+  farm: Farm;
+}
 
 interface DairyControl {
   registerId: number;
@@ -17,15 +29,7 @@ interface DairyControl {
   weightMilking3?: string;
   dim?: number;
   dtc?: number;
-  animal: {
-    animalId: number;
-    name: string;
-    number: string;
-    farm: {
-      farmId: number;
-      name: string;
-    };
-  };
+  animal: Animal;
 }
 
 interface TableData {
@@ -39,73 +43,108 @@ interface TableData {
   production?: string;
 }
 
-const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+const fetcher = async (url: string) => {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+  const res = await axios.get(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
 
-const TableForm = () => {
+const TableForm: React.FC = () => {
   const router = useRouter();
-  const params = useSearchParams();
-  const farmerId = params.get("farmerId");
-  const farmId = params.get("farmId");
-  const controlDate = params.get("controlDate");
+  const farmerId =
+    typeof window !== "undefined" ? localStorage.getItem("farmerId") : null;
+  const farmId =
+    typeof window !== "undefined" ? localStorage.getItem("farmId") : null;
+  const controlDate =
+    typeof window !== "undefined" ? localStorage.getItem("controlDate") : null;
+  const farmName =
+    typeof window !== "undefined" ? localStorage.getItem("farmName") : null;
 
   const [tableData, setTableData] = useState<TableData[]>([]);
   const [title, setTitle] = useState<{ farm: string; date: string }>({
-    farm: "",
-    date: "",
+    farm: farmName || "",
+    date: controlDate ? new Date(controlDate).toLocaleDateString('pt-BR') : "",
   });
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}dairy-control/farm/${farmId}/date/${controlDate}`;
+  const apiDairyControlUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}dairy-control`;
   const {
     data: dairyControlList,
     error: dairyControlError,
-    isLoading,
-  } = useSWR<DairyControl[]>(apiUrl, fetcher);
+    isLoading: dairyControlLoading,
+  } = useSWR<DairyControl[]>(
+    `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${controlDate}`,
+    fetcher,
+    {
+      dedupingInterval: 0,
+      refreshInterval: 0,
+      revalidateOnFocus: false,
+      revalidateOnMount: true,
+    }
+  );
 
   useEffect(() => {
+    if (dairyControlLoading) {
+      setIsLoading(true);
+      return;
+    }
+
     if (dairyControlError) {
       setError("Erro ao carregar os dados");
-    } else {
-      setError("");
     }
-  }, [dairyControlError]);
+
+    setIsLoading(false);
+  }, [dairyControlError, dairyControlLoading]);
 
   useEffect(() => {
-    if (dairyControlList && dairyControlList.length > 0) {
-      const formattedData = dairyControlList.map((item) => ({
+    if (Array.isArray(dairyControlList) && dairyControlList.length > 0) {
+      const sortedList = [...dairyControlList].sort((a, b) =>
+        a.animal.number.localeCompare(b.animal.number, undefined, { numeric: true })
+      );
+
+      const formattedData = sortedList.map((item) => ({
         cowNumber: item.animal.number,
         cowName: item.animal.name,
         dim: item.dim || 0,
         dtc: item.dtc || 0,
         weightMilking1: parseFloat(item.weightMilking1) || 0,
-        weightMilking2: parseFloat(item.weightMilking2 || "0") || 0,
-        weightMilking3: parseFloat(item.weightMilking3 || "0") || 0,
+        weightMilking2: parseFloat(item.weightMilking2 || "0"),
+        weightMilking3: parseFloat(item.weightMilking3 || "0"),
       }));
+
       setTableData(formattedData);
-
-      const firstItem = dairyControlList[0];
-      const [year, month, day] = firstItem.dairyDateControl.split("-");
-      const dairyDateControlFormatted = `${day}/${month}/${year}`;
-
-      setTitle({
-        farm: dairyControlList[0].animal.farm.name,
-        date: dairyDateControlFormatted,
-      });
     }
   }, [dairyControlList]);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push(`/atividades?farmerId=${farmerId}&farmId=${farmId}`);
+    setIsLoading(true);
+    router.push("/atividades");
+  };
+
+  const goBack = () => {
+    setIsLoading(true);
+    router.push("/relatorios");
   };
 
   return (
     <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
-      <Table data={tableData} title={title} />
+      {dairyControlList && dairyControlList.length > 0 ? (
+        <Table data={tableData} title={title} />
+      ) : (
+        <FormText type="label-large">Não há dados para exibir.</FormText>
+      )}
 
       {error && <FormText type="error">{error}</FormText>}
 
       <Button type="submit">Fechar</Button>
+      <Button type="button" onClick={goBack}>
+        Voltar
+      </Button>
     </Form>
   );
 };

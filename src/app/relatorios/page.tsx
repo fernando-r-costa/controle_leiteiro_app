@@ -1,5 +1,5 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import useSWR from "swr";
@@ -10,52 +10,68 @@ import Button from "../components/buttons/page";
 
 interface DateControl {
   dairyDateControl: string;
-  dairyDateControlFormatted?: string;
 }
 
-const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+const fetcher = async (url: string) => {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+  const res = await axios.get(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
 
-const ReportsDateForm = () => {
+const ReportsDateForm: React.FC = () => {
   const router = useRouter();
-  const params = useSearchParams();
-  const farmerId = params.get("farmerId");
-  const farmId = params.get("farmId");
+  const farmerId =
+    typeof window !== "undefined" ? localStorage.getItem("farmerId") : null;
+  const farmId =
+    typeof window !== "undefined" ? localStorage.getItem("farmId") : null;
 
   const [controlDate, setControlDate] = useState("");
   const [error, setError] = useState("");
-  const [dateList, setDateList] = useState<DateControl[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}dairy-control/farm/${farmId}/dates`;
+  const apiDairyControlUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}dairy-control/farmer/${farmerId}/farm/${farmId}/dates`;
+
   const {
     data: dateControlList,
     error: dateControlListError,
-    isLoading,
-  } = useSWR<DateControl[]>(apiUrl, fetcher);
+    isLoading: dateControlListLoading,
+  } = useSWR<DateControl[]>(apiDairyControlUrl, fetcher, {
+    dedupingInterval: 0,
+    refreshInterval: 0,
+    revalidateOnFocus: true,
+    revalidateOnMount: true,
+  });
 
   useEffect(() => {
+    if (dateControlListLoading) {
+      setIsLoading(true);
+      return;
+    }
+
     if (dateControlListError) {
       setError("Erro ao carregar datas");
-    } else {
-      setError("");
     }
 
-    if (dateControlList) {
-      const formattedDates = dateControlList.map((date: DateControl) => {
-        const [year, month, day] = date.dairyDateControl.split("-");
-        return {
-          ...date,
-          dairyDateControlFormatted: `${day}/${month}/${year}`,
-        };
-      });
-      setDateList(formattedDates);
-    }
-  }, [dateControlList, dateControlListError]);
+    setIsLoading(false);
+  }, [dateControlListError, dateControlListLoading]);
 
   useEffect(() => {
-    if (dateList && dateList.length > 0) {
-      setControlDate(dateList[0].dairyDateControl);
+    if (Array.isArray(dateControlList) && dateControlList.length > 0) {
+      const sortedDates = [...dateControlList].sort(
+        (a, b) =>
+          new Date(b.dairyDateControl).getTime() -
+          new Date(a.dairyDateControl).getTime()
+      );
+      setControlDate(sortedDates[0].dairyDateControl);
     }
-  }, [dateList]);
+  }, [dateControlList]);
+
+  const formatDateForDisplay = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString("pt-BR");
+  };
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,33 +82,58 @@ const ReportsDateForm = () => {
     }
 
     setError("");
-    router.push(
-      `/relatorio_final?farmerId=${farmerId}&farmId=${farmId}&controlDate=${controlDate}`
-    );
+    setIsLoading(true);
+    localStorage.setItem("controlDate", controlDate);
+    router.push(`/relatorio_final`);
   };
+
+  const goBack = () => {
+    setIsLoading(true);
+    router.push("/atividades");
+  };
+
+  const hasControls =
+    Array.isArray(dateControlList) && dateControlList.length > 0;
 
   return (
     <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
       <FormText type="title">Selecione a data</FormText>
-
       <FormText type="label-large">
         para o relatório do controle leiteiro:
       </FormText>
 
-        <FormInput
-          size="select"
-          type="select"
-          value={controlDate}
-          onChange={(e) => setControlDate(e.target.value)}
-          options={dateList.map((date) => ({
-            label: date.dairyDateControlFormatted || "",
-            value: date.dairyDateControl,
-          }))}
-        />
+      {hasControls ? (
+        <>
+          <FormInput
+            size="select"
+            type="select"
+            value={controlDate}
+            onChange={(e) => setControlDate(e.target.value)}
+            options={dateControlList
+              .slice()
+              .sort(
+                (a, b) =>
+                  new Date(b.dairyDateControl).getTime() -
+                  new Date(a.dairyDateControl).getTime()
+              )
+              .map((date) => ({
+                label: formatDateForDisplay(date.dairyDateControl),
+                value: date.dairyDateControl,
+              }))}
+          />
+        </>
+      ) : (
+        <FormText type="label-large">
+          Não há controles leiteiros registrados.
+        </FormText>
+      )}
 
       {error && <FormText type="error">{error}</FormText>}
 
-      <Button type="submit">Selecionar</Button>
+      {hasControls && <Button type="submit">Selecionar</Button>}
+      <Button type="button" onClick={goBack}>
+        Voltar
+      </Button>
     </Form>
   );
 };

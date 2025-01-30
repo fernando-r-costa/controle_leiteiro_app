@@ -29,6 +29,7 @@ const FarmForm: React.FC = () => {
   const router = useRouter();
 
   const [farmId, setFarmId] = useState<number>(0);
+  const [farmName, setFarmName] = useState<string>("")
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showMessage, setShowMessage] = useState<boolean>(false);
@@ -48,6 +49,7 @@ const FarmForm: React.FC = () => {
   useEffect(() => {
     if (farmList && farmList.length > 0) {
       setFarmId(Number(farmList[0].farmId));
+      setFarmName(farmList[0].name);
       setIsLoading(false);
     }
   }, [farmList]);
@@ -56,6 +58,8 @@ const FarmForm: React.FC = () => {
     e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
   ) => {
     setFarmId(Number(e.target.value));
+    const target = e.target as HTMLSelectElement;
+    setFarmName(target.selectedOptions[0].text);
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -70,6 +74,7 @@ const FarmForm: React.FC = () => {
     setIsLoading(true);
     if (typeof window !== "undefined") {
       localStorage.setItem("farmId", farmId.toString());
+      localStorage.setItem("farmName", farmName);
     }
     router.push("/atividades");
   };
