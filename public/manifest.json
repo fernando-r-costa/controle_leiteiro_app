@@ -1,6 +1,8 @@
 {
   "name": "Controle Leiteiro",
-  "short_name": "",
+  "short_name": "CL",
+  "description": "Aplicativo para controle de produção leiteira.",
+  "lang": "pt-BR",
   "icons": [
     {
       "src": "/icon-192x192.png",
@@ -22,6 +24,7 @@
   "theme_color": "#6d7275ff",
   "background_color": "#c7d6d5ff",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait"
 }

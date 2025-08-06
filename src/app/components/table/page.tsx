@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import FormText from "../texts/page";
 
 type TableColumn = {
@@ -43,18 +44,49 @@ const Table: React.FC<TableProps> = ({ data, title }) => {
     });
   };
 
-  const validData = Array.isArray(data) ? data : []
+  const validData = Array.isArray(data) ? data : [];
 
+  // Estado para ordenação
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  }>({
+    key: "production",
+    direction: "desc",
+  });
+
+  // Handler para clicar no cabeçalho
+  const handleSort = (key: string) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
+  // Ordenação dinâmica
   const sortedData = [...validData]
     .map((row) => ({
       ...row,
       production: sumProduction(row),
     }))
-    .sort(
-      (a, b) =>
-        parseFloat(b.production.replace(",", ".")) -
-        parseFloat(a.production.replace(",", "."))
-    );
+    .sort((a, b) => {
+      const { key, direction } = sortConfig;
+      let aValue = a[key as keyof TableRowData];
+      let bValue = b[key as keyof TableRowData];
+
+      // Para produção, converter para número
+      if (key === "production") {
+        aValue = parseFloat(String(aValue).replace(",", "."));
+        bValue = parseFloat(String(bValue).replace(",", "."));
+      }
+
+      if (aValue === undefined) return 1;
+      if (bValue === undefined) return -1;
+
+      if (aValue < bValue) return direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
 
   const formatNumber = (value: string | number) => {
     if (typeof value === "number") {
@@ -101,16 +133,22 @@ const Table: React.FC<TableProps> = ({ data, title }) => {
           >{`Data do Controle: ${title.date}`}</FormText>
         </div>
       )}
-      <div className="overflow-x-auto mt-4 p-2">
+      <div className="w-full max-w-4xl mx-auto overflow-x-auto mt-4 p-2">
         <table className="w-full border-collapse border border-primary-color">
           <thead>
             <tr className="bg-primary-color text-light-color">
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className="px-4 py-2 sticky top-0 bg-primary-color z-10"
+                  className="px-4 py-2 sticky top-0 bg-primary-color z-10 cursor-pointer select-none"
+                  onClick={() => handleSort(column.key)}
                 >
                   {column.label}
+                  {sortConfig.key === column.key && (
+                    <span className="ml-1">
+                      {sortConfig.direction === "asc" ? "▲" : "▼"}
+                    </span>
+                  )}
                 </th>
               ))}
             </tr>

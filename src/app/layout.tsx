@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Suspense } from "react";
-import Banner from "./components/banner/page";
+import Header from "./components/banner/page";
 import Footer from "./components/footer/page";
 import FormText from "./components/texts/page";
 
 const APP_NAME = "Controle Leiteiro App";
-const APP_DEFAULT_TITLE = "APP";
+const APP_DEFAULT_TITLE = "Controle Leiteiro APP";
 const APP_TITLE_TEMPLATE = "Controle Leiteiro App";
 const APP_DESCRIPTION = "Controle Leiteiro App PWA";
 
@@ -23,6 +23,11 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: APP_DEFAULT_TITLE,
     startupImage: "/frc.gif",
+  },
+  icons: {
+    icon: "/frc.gif",
+    shortcut: "/frc.gif",
+    apple: "/frc.gif",
   },
   formatDetection: {
     telephone: false,
@@ -58,7 +63,7 @@ export default function RootLayout({
   return (
     <html lang="pt-br">
       <body className="flex flex-col h-dvh font-primaryFont text-[14px] bg-secondary-color text-dark-color">
-        <Banner />
+        <Header />
         <Suspense
           fallback={
             <div className="flex-grow overflow-y-auto mx-auto mt-8 animate-pulse">
