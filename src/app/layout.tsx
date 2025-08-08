@@ -1,14 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Suspense } from "react";
-import Header from "./components/banner/page";
+import Header from "./components/header/page";
 import Footer from "./components/footer/page";
 import FormText from "./components/texts/page";
 
-const APP_NAME = "Controle Leiteiro App";
-const APP_DEFAULT_TITLE = "Controle Leiteiro APP";
-const APP_TITLE_TEMPLATE = "Controle Leiteiro App";
-const APP_DESCRIPTION = "Controle Leiteiro App PWA";
+const APP_NAME = "Controle Leiteiro";
+const APP_DEFAULT_TITLE = "Controle Leiteiro";
+const APP_TITLE_TEMPLATE = "Controle Leiteiro";
+const APP_DESCRIPTION = "Controle Leiteiro PWA";
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
@@ -22,12 +22,12 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: APP_DEFAULT_TITLE,
-    startupImage: "/frc.gif",
+    startupImage: "/icon_CL.png",
   },
   icons: {
-    icon: "/frc.gif",
-    shortcut: "/frc.gif",
-    apple: "/frc.gif",
+    icon: "/icon_CL.png",
+    shortcut: "/icon_CL.png",
+    apple: "/icon_CL.png",
   },
   formatDetection: {
     telephone: false,
