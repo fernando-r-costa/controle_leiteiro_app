@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   },
   description: APP_DESCRIPTION,
   manifest: "manifest.json",
+  metadataBase: new URL("https://controleleiteiro.com.br"),
+  alternates: {
+    canonical: "/",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
