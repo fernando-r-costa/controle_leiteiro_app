@@ -5,18 +5,18 @@
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "icon_CL.png",
+      "src": "/public/icon_CL.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icon_CL.png",
+      "src": "/public/logo_V_CL.png",
       "sizes": "384x384",
       "type": "image/png"
     },
     {
-      "src": "/icon-512x512.png",
+      "src": "/public/logo_H_CL.png",
       "sizes": "512x512",
       "type": "image/png"
     }
