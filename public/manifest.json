@@ -11,19 +11,19 @@
       "purpose": "any maskable"
     },
     {
-      "src": "/logo_V_CL.png",
+      "src": "/icon_CL.png",
       "sizes": "384x384",
       "type": "image/png"
     },
     {
-      "src": "/logo_H_CL.png",
+      "src": "/icon_CL.png",
       "sizes": "512x512",
       "type": "image/png"
     }
   ],
   "theme_color": "#6d7275ff",
   "background_color": "#c7d6d5ff",
-  "start_url": "/",
+  "start_url": "/login",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait"

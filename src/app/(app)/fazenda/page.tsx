@@ -29,7 +29,7 @@ const FarmForm: React.FC = () => {
   const router = useRouter();
 
   const [farmId, setFarmId] = useState<number>(0);
-  const [farmName, setFarmName] = useState<string>("")
+  const [farmName, setFarmName] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showMessage, setShowMessage] = useState<boolean>(false);
@@ -94,7 +94,7 @@ const FarmForm: React.FC = () => {
         if (typeof window !== "undefined") {
           localStorage.clear();
         }
-        router.push("/");
+        router.push("/login");
       }, 3000);
     }
   };
@@ -103,8 +103,8 @@ const FarmForm: React.FC = () => {
     <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
       {showMessage ? (
         <div className="flex-grow overflow-y-auto mx-auto mt-8 animate-pulse">
-        <FormText type="title">Até logo!</FormText>
-      </div>
+          <FormText type="title">Até logo!</FormText>
+        </div>
       ) : (
         <>
           <FormText type="title">FAZENDA:</FormText>

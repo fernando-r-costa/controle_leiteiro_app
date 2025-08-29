@@ -1,9 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Suspense } from "react";
-import Header from "./components/header/page";
-import Footer from "./components/footer/page";
-import FormText from "./components/texts/page";
 
 const APP_NAME = "Controle Leiteiro";
 const APP_DEFAULT_TITLE = "Controle Leiteiro";
@@ -65,19 +62,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-br">
+    <html lang="pt-br" className="scroll-smooth">
       <body className="flex flex-col h-dvh font-primaryFont text-[14px] bg-secondary-color text-dark-color">
-        <Header />
         <Suspense
           fallback={
-            <div className="flex-grow overflow-y-auto mx-auto mt-8 animate-pulse">
-              <FormText type="title">Carregando...</FormText>
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-xl font-bold">Carregando...</div>
             </div>
           }
         >
-          <main className="flex-grow overflow-y-auto">{children}</main>
+          {children}
         </Suspense>
-        <Footer />
       </body>
     </html>
   );

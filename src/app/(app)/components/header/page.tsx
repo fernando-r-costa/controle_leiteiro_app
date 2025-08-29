@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
-import LogoFRC from "../../../../public/frc.gif";
-import LogoCL from "../../../../public/icon_CL.png";
+import LogoFRC from "../../../../../public/frc.gif";
+import LogoCL from "../../../../../public/icon_CL.png";
 
 const Header = () => {
   return (
