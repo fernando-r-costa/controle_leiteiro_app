@@ -230,14 +230,13 @@ const BenefitSection = () => (
         Você está nos ajudando a construir o futuro da gestão leiteira. Como{" "}
         <strong className="underline">Produtor Pioneiro</strong>, sua jornada
         conosco começa agora, na fase experimental. Para celebrar essa parceria,
-        queremos que você seja o primeiro a colher os frutos quando a plataforma
-        completa for lançada:
+        queremos que você seja o primeiro a colher os frutos quando novas funcionalidades forem lançadas:
       </p>
 
       <div className="mt-8 bg-light-color/60  rounded-lg p-6 max-w-2xl mx-auto text-left">
         <p className="text-xl font-bold text-center mb-4">
-          Sua conta sempre será bonificada com{" "}
-          <span className="underline">3 meses de acesso gratuito</span> as
+          Sua conta será bonificada com{" "}
+          <span className="underline">3 meses de acesso gratuito</span> as novas
           ferramentas avançadas como:
         </p>
         <ul className="space-y-3 list-disc list-inside text-base">
