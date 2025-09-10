@@ -18,13 +18,14 @@
     {
       "src": "/icon_CL.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "theme_color": "#6d7275ff",
-  "background_color": "#c7d6d5ff",
+  "theme_color": "#6d7275",
+  "background_color": "#c7d6d5",
   "start_url": "/login",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait"
+  "orientation": "any"
 }

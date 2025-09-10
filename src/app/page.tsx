@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -10,9 +11,19 @@ import {
   LuInstagram,
   LuLinkedin,
   LuYoutube,
+  LuHandshake,
 } from "react-icons/lu";
-
 import { BiEdit, BiLogoWhatsapp } from "react-icons/bi";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+
+// Fotos do Carrossel
+const screenshots = [
+  { src: "/fotos/tela_controle.jpg", alt: "Tela de Controle Leiteiro" },
+  { src: "/fotos/tela_animal.jpg", alt: "Tela de Animais" },
+  { src: "/fotos/tela_relatorio.jpg", alt: "Tela de Relatórios" },
+  { src: "/fotos/tela_atividades.jpg", alt: "Tela de Atividades" },
+  { src: "/fotos/tela_fazenda.jpg", alt: "Dashboard da Fazenda" },
+];
 
 // Componente Principal da Página
 export default function LandingPage() {
@@ -32,24 +43,24 @@ export default function LandingPage() {
   );
 }
 
-// Seções como componentes individuais para organização
+// Seções como componentes individuais
 
 const Header = () => (
-  <header className="bg-primary-color backdrop-blur-md sticky top-0 z-50 border-none">
-    <div className="container mx-auto  md:px-8 p-3 flex justify-between items-center">
-      <div className="flex items-center gap-2 text-light-color font-light text-[1.7em] sm:text-[2em]">
+  <header className="bg-primary-color/90 backdrop-blur-md sticky top-0 z-50 border-none">
+    <div className="container mx-auto md:px-8 p-3 flex justify-between items-center">
+      <div className="flex items-center gap-2 text-light-color font-light  text-[1.7em] md:scale-110">
         <Image
           src="/icon_CL.png"
           alt="Logo Controle Leiteiro"
-          width={50}
-          height={50}
+          width={40}
+          height={40}
           className="rounded-lg"
         />
         <span>
           <strong className="font-semibold">Controle</strong> Leiteiro
         </span>
       </div>
-      <nav className="hidden md:flex items-center gap-6 text-light-color font-medium text-lg">
+      <nav className="hidden lg:flex items-center gap-6 text-light-color font-medium text-lg">
         <a
           href="#inicio"
           onClick={(e) => {
@@ -91,6 +102,103 @@ const Header = () => (
   </header>
 );
 
+const PhotoCarousel = () => {
+  const [isMounted, setIsMounted] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(3);
+
+  useEffect(() => {
+    const handleResize = () => {
+      let newItemsPerPage = 1;
+      if (window.innerWidth >= 1024) {
+        newItemsPerPage = 3;
+      } else if (window.innerWidth >= 768) {
+        newItemsPerPage = 2;
+      }
+
+      setItemsPerPage(newItemsPerPage);
+
+      setCurrentIndex(prevIndex => {
+        const newLastPossibleIndex = Math.max(0, screenshots.length - newItemsPerPage);
+        return Math.min(prevIndex, newLastPossibleIndex);
+      });
+    };
+    
+    handleResize();
+    setIsMounted(true);
+    
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const goToPrevious = () => {
+    const isFirstSlide = currentIndex === 0;
+    const newIndex = isFirstSlide
+      ? Math.max(0, screenshots.length - itemsPerPage)
+      : currentIndex - 1;
+    setCurrentIndex(newIndex);
+  };
+
+  const goToNext = () => {
+    const lastPossibleIndex = Math.max(0, screenshots.length - itemsPerPage);
+    const isLastSlide = currentIndex >= lastPossibleIndex;
+    const newIndex = isLastSlide ? 0 : currentIndex + 1;
+    setCurrentIndex(newIndex);
+  };
+
+  if (!isMounted) {
+    return (
+      <div className="relative w-full max-w-6xl mx-auto">
+        <div className="relative rounded-xl shadow-xl bg-tertiary-color/25 h-[450px] animate-pulse"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full max-w-6xl mx-auto">
+      <div className="overflow-hidden relative rounded-xl shadow-xl bg-tertiary-color/25 h-[450px]">
+        <div
+          className="grid grid-flow-col auto-cols-auto transition-transform ease-in-out duration-500 h-full"
+          style={{
+            gridAutoColumns: `${100 / itemsPerPage}%`,
+            transform: `translateX(-${currentIndex * (100 / itemsPerPage)}%)`,
+          }}
+        >
+          {screenshots.map((screen, index) => (
+            <div
+              className="flex items-center justify-center p-2 md:p-4"
+              key={index}
+            >
+              <Image
+                src={screen.src}
+                alt={screen.alt}
+                width={800}
+                height={1692}
+                className="shadow-2xl rounded-xl bg-black h-[400px] w-auto"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <button
+        onClick={goToPrevious}
+        className="absolute top-1/2 left-0 sm:-left-4 transform -translate-y-1/2 z-10 bg-black/30 text-white p-3 rounded-full hover:bg-black/50 transition-colors"
+        aria-label="Previous image"
+      >
+        <FaChevronLeft size={24} />
+      </button>
+      <button
+        onClick={goToNext}
+        className="absolute top-1/2 right-0 sm:-right-4 transform -translate-y-1/2 z-10 bg-black/30 text-white p-3 rounded-full hover:bg-black/50 transition-colors"
+        aria-label="Next image"
+      >
+        <FaChevronRight size={24} />
+      </button>
+    </div>
+  );
+};
+
 const HeroSection = () => (
   <section className="container mx-auto px-6 py-20 md:py-32 text-center">
     <h1 className="text-5xl md:text-7xl font-extrabold text-dark-color leading-tight">
@@ -102,8 +210,7 @@ const HeroSection = () => (
     </h1>
     <p className="mt-6 text-lg md:text-2xl text-dark-color max-w-3xl mx-auto">
       Teste agora a versão experimental do nosso aplicativo para o controle
-      leiteiro de sua propriedade e tenha as informações da produção na palma da
-      mão.
+      leiteiro e tenha as informações da produção na palma da mão.
     </p>
     <div className="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
       <Link
@@ -116,14 +223,12 @@ const HeroSection = () => (
       </Link>
     </div>
     <div className="mt-10 text-sm text-highlight-color bg-highlight-color/15 rounded-lg py-2 px-4 inline-block">
-      Seja um <strong className="font-extrabold">Produtor Pioneiro</strong> e
-      garanta acesso exclusivo a benefícios nos serviços futuros da plataforma.
+      Seja um <strong className="font-extrabold">Pioneiro</strong> e garanta
+      acesso exclusivo a benefícios nos serviços futuros da plataforma.
       Cadastre-se agora!
     </div>
     <div className="mt-16 relative">
-      <div className="bg-secondary-color h-96 rounded-xl flex items-center justify-center text-dark-color">
-        [Mockup do app em celular e desktop]
-      </div>
+      <PhotoCarousel />
     </div>
   </section>
 );
@@ -132,13 +237,13 @@ const FeaturesSection = () => (
   <section id="funcionalidades" className="bg-secondary-color py-20 md:py-28">
     <div className="container mx-auto px-6 text-center">
       <h2 className="text-3xl md:text-4xl font-bold text-dark-color">
-        O controle diário da sua produção, simplificado
+        O controle diário da produção, simplificado!
       </h2>
       <p className="mt-4 text-xl text-dark-color max-w-3xl mx-auto">
-        Deixe as planilhas para trás. Cadastre seus animais, registre a produção
-        e tenha os números do dia em um só lugar, de forma fácil e organizada.
+        Deixe as planilhas para trás. Cadastre os animais, registre a produção e
+        tenha os números do dia em um só lugar, de forma fácil e organizada.
       </p>
-      <div className="mt-12 grid md:grid-cols-3 gap-8 text-left">
+      <div className="mt-12 grid md:grid-cols-4 gap-8 text-left">
         <div className="bg-light-color p-6 rounded-lg shadow-md transition-shadow hover:shadow-lg hover:shadow-tertiary-color">
           <BiEdit className="w-10 h-10 text-tertiary-color mb-4" />
           <h3 className="font-bold text-xl mb-2">Rebanho organizado</h3>
@@ -170,6 +275,14 @@ const FeaturesSection = () => (
             suas próximas ações.
           </p>
         </div>
+        <div className="bg-light-color p-6 rounded-lg shadow-md transition-shadow hover:shadow-lg hover:shadow-tertiary-color">
+          <LuHandshake className="w-10 h-10 text-tertiary-color mb-4" />
+          <h3 className="font-bold text-xl mb-2">Gestão da consultoria</h3>
+          <p className="text-dark-color">
+            Cadastre todas as propriedades que você assiste e facilite a
+            assistência. Acesse os dados de cada rebanho em qualquer lugar.
+          </p>
+        </div>
       </div>
     </div>
   </section>
@@ -185,7 +298,7 @@ const WhySection = () => (
         <p className="mt-4 text-2xl ">
           Aumentar a produtividade em{" "}
           <span className="font-bold border-b-4 border-tertiary-color">
-            15% a 25%
+            até 25%
           </span>{" "}
           não é sorte,{" "}
           <span className="font-bold border-b-4 border-tertiary-color text-">
@@ -198,9 +311,9 @@ const WhySection = () => (
           confiáveis.
         </p>
         <p className="mt-4 text-xl">
-          Com nossa ferramenta, a gestão baseada em dados se torna
-          simples. Visualize a performance de cada animal e tenha a confiança
-          para agir no momento certo, otimizando o potencial do seu rebanho.
+          Com nossa ferramenta, a gestão baseada em dados se torna simples.
+          Visualize a performance de cada animal e tenha a confiança para agir
+          no momento certo, otimizando o potencial do seu rebanho.
         </p>
       </div>
       <div className="bg-secondary-color border-l-4 border-tertiary-color rounded-r-xl p-6">
@@ -228,9 +341,10 @@ const BenefitSection = () => (
       </h2>
       <p className="mt-4 text-lg max-w-3xl mx-auto">
         Você está nos ajudando a construir o futuro da gestão leiteira. Como{" "}
-        <strong className="underline">Produtor Pioneiro</strong>, sua jornada
-        conosco começa agora, na fase experimental. Para celebrar essa parceria,
-        queremos que você seja o primeiro a colher os frutos quando novas funcionalidades forem lançadas:
+        <strong className="underline">Pioneiro</strong>, sua jornada conosco
+        começa agora, na fase experimental. Para celebrar essa parceria,
+        queremos que você seja o primeiro a colher os frutos quando novas
+        funcionalidades forem lançadas:
       </p>
 
       <div className="mt-8 bg-light-color/60  rounded-lg p-6 max-w-2xl mx-auto text-left">
@@ -242,12 +356,12 @@ const BenefitSection = () => (
         <ul className="space-y-3 list-disc list-inside text-base">
           <li>
             <strong>Exportação profissional de relatórios:</strong> gere e baixe
-            seus dados em PDF e planilhas para compartilhar com sua equipe,
-            seu técnico ou seu veterinário.
+            os dados em PDF e planilhas para compartilhar com sua equipe ou
+            consultor.
           </li>
           <li>
             <strong>Análises com Inteligência Artificial:</strong> acesse
-            relatórios que revelam tendências e insights valiosos sobre seu
+            relatórios que revelam tendências e insights valiosos sobre o
             rebanho para otimizar a produção.
           </li>
           <li>
@@ -258,9 +372,8 @@ const BenefitSection = () => (
       </div>
 
       <p className="mt-8 text-base max-w-2xl mx-auto">
-        Além disso, seu status de <strong>Produtor Pioneiro</strong> garantirá
-        que você sempre tenha as melhores condições e descontos em nossa jornada
-        juntos.
+        Além disso, seu status de <strong>Pioneiro</strong> garantirá que você
+        sempre tenha as melhores condições e descontos em nossa jornada juntos.
       </p>
     </div>
   </section>

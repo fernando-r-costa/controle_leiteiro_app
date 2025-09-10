@@ -1,28 +1,32 @@
 import Link from "next/link";
 import Image from "next/image";
-import LogoFRC from "../../../../../public/frc.gif";
-import LogoCL from "../../../../../public/icon_CL.png";
+import LogoFRC from "../../../../../public/frc_logo_removebg.png";
 
 const Header = () => {
   return (
-    <header className="flex justify-between items-center bg-primary-color h-[10vh]">
-      <h1 className="flex items-center text-light-color font-light text-[1.7em] sm:text-[2.2em] p-[8vw]">
+    <header className="flex justify-between px-10 py-3 items-center bg-primary-color sticky top-0 z-50">
+      <div className="flex items-center gap-2 text-light-color font-light text-[1.8em] md:scale-110">
         <Image
-          src={LogoCL}
+          src="/icon_CL.png"
           alt="Logo Controle Leiteiro"
-          className="w-1/12 rounded-xl mr-2"
+          width={50}
+          height={50}
+          className="rounded-lg"
         />
-        <span>
+        <span className="flex items-center gap-2">
           <strong className="font-semibold">Controle</strong> Leiteiro
+          <span className="bg-tertiary-color text-primary-color text-[0.6rem] font-bold px-2 rounded-full">
+            BETA
+          </span>
         </span>
-      </h1>
+      </div>
       <div className="flex items-center text-light-color text-[1.2em] sm:text-[1.5em] font-light">
-        <Link
-          className="w-1/12 max-w-12 min-w-12 mx-[6vw]"
+        {/* <Link
+          className="w-1/12 max-w-12 min-w-20 mx-[6vw]"
           href="https://www.linkedin.com/in/fernando-r-costa/"
         >
           <Image src={LogoFRC} alt="Logo FRC" />
-        </Link>
+        </Link> */}
       </div>
     </header>
   );
