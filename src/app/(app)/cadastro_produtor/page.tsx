@@ -20,6 +20,7 @@ const FarmerRegisterForm: React.FC = () => {
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [isPasswordFocused, setIsPasswordFocused] = useState<boolean>(false);
   const [phone, setPhone] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -125,7 +126,14 @@ const FarmerRegisterForm: React.FC = () => {
         type={"password"}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        onFocus={() => setIsPasswordFocused(true)}
+        onBlur={() => setIsPasswordFocused(false)}
       />
+      {isPasswordFocused && 
+        <FormText type="error">
+          Para sua segurança, não utilize a mesma senha de bancos ou outros sites importantes. Use no mínimo 8 caracteres.
+        </FormText>
+      }
 
       <FormText type="label-large">TELEFONE:</FormText>
       <FormInput

@@ -11,10 +11,12 @@ type InputProps = {
   ) => void;
   size: "large" | "short" | "select";
   options?: { label: string; value: string | number }[];
+  onFocus?: React.FocusEventHandler<HTMLInputElement | HTMLSelectElement>;
+  onBlur?: React.FocusEventHandler<HTMLInputElement | HTMLSelectElement>;
 };
 
 const FormInput = forwardRef<HTMLInputElement | HTMLSelectElement, InputProps>(
-  ({ type, placeholder, value, onChange, size, options }, ref) => {
+  ({ type, placeholder, value, onChange, size, options, onFocus, onBlur }, ref) => {
     switch (size) {
       case "large":
         return (
@@ -23,6 +25,8 @@ const FormInput = forwardRef<HTMLInputElement | HTMLSelectElement, InputProps>(
             placeholder={placeholder}
             value={value}
             onChange={onChange}
+            onFocus={onFocus} 
+            onBlur={onBlur}
             className="text-[1.4em] p-2 outline-none rounded-lg shadow-lg cursor-pointer mb-8 focus:shadow-tertiary-color hover:shadow-tertiary-color"
             ref={ref as React.RefObject<HTMLInputElement>}
           />
@@ -34,7 +38,10 @@ const FormInput = forwardRef<HTMLInputElement | HTMLSelectElement, InputProps>(
             placeholder={placeholder}
             value={value}
             onChange={onChange}
+            onFocus={onFocus}
+            onBlur={onBlur}
             className="w-24 text-[1.4em] p-2 outline-none rounded-lg shadow-lg cursor-pointer focus:shadow-tertiary-color hover:shadow-tertiary-color"
+            ref={ref as React.RefObject<HTMLInputElement>}
           />
         );
       case "select":
@@ -42,6 +49,8 @@ const FormInput = forwardRef<HTMLInputElement | HTMLSelectElement, InputProps>(
           <select
             value={value}
             onChange={onChange}
+            onFocus={onFocus} 
+            onBlur={onBlur}
             className="text-[1.4em] p-2 outline-none rounded-lg shadow-lg cursor-pointer mb-8 focus:shadow-tertiary-color hover:shadow-tertiary-color"
             ref={ref as React.RefObject<HTMLSelectElement>}
           >

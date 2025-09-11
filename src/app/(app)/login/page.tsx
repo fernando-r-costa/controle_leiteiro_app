@@ -56,7 +56,7 @@ const LoginForm: React.FC = () => {
       setIsLoading(false);
       setError(
         error.response?.data?.error ||
-          "Erro ao fazer login. Verifique suas credenciais."
+          "Erro ao fazer login. Verifique seu e-mail e senha."
       );
     }
   };

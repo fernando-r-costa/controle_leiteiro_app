@@ -19,7 +19,7 @@ const FormText: React.FC<TextProps> = ({ children, type }) => {
       );
     case "error":
       return (
-        <div className="text-[1.4em] font-semibold mb-4 text-highlight-color">
+        <div className="text-[1.4em] font-semibold mb-4 text-highlight-color w-1/2">
           {children}
         </div>
       );
