@@ -118,15 +118,18 @@ const PhotoCarousel = () => {
 
       setItemsPerPage(newItemsPerPage);
 
-      setCurrentIndex(prevIndex => {
-        const newLastPossibleIndex = Math.max(0, screenshots.length - newItemsPerPage);
+      setCurrentIndex((prevIndex) => {
+        const newLastPossibleIndex = Math.max(
+          0,
+          screenshots.length - newItemsPerPage
+        );
         return Math.min(prevIndex, newLastPossibleIndex);
       });
     };
-    
+
     handleResize();
     setIsMounted(true);
-    
+
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -341,13 +344,13 @@ const BenefitSection = () => (
       </h2>
       <p className="mt-4 text-lg max-w-3xl mx-auto">
         Você está nos ajudando a construir o futuro da gestão leiteira. Como{" "}
-        <strong className="underline">Pioneiro</strong>, sua jornada conosco
+        <strong className="underline">Pioneiro</strong>*, sua jornada conosco
         começa agora, na fase experimental. Para celebrar essa parceria,
         queremos que você seja o primeiro a colher os frutos quando novas
         funcionalidades forem lançadas:
       </p>
 
-      <div className="mt-8 bg-light-color/60  rounded-lg p-6 max-w-2xl mx-auto text-left">
+      <div className="mt-8 bg-light-color/60 rounded-lg p-6 max-w-2xl mx-auto text-left">
         <p className="text-xl font-bold text-center mb-4">
           Sua conta será bonificada com{" "}
           <span className="underline">3 meses de acesso gratuito</span> as novas
@@ -371,10 +374,15 @@ const BenefitSection = () => (
         </ul>
       </div>
 
-      <p className="mt-8 text-base max-w-2xl mx-auto">
+      <p className="my-8 text-base max-w-2xl mx-auto">
         Além disso, seu status de <strong>Pioneiro</strong> garantirá que você
         sempre tenha as melhores condições e descontos em nossa jornada juntos.
       </p>
+
+      <div className="text-sm text-center text-highlight-color">
+          *O status <strong className="font-extrabold">Pioneiro </strong>será concedido até dia{" "}
+          <strong className="font-extrabold">31/12/2025</strong>.
+        </div>
     </div>
   </section>
 );

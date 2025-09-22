@@ -47,9 +47,11 @@ const FarmForm: React.FC = () => {
   }, [farmError]);
 
   useEffect(() => {
-    if (farmList && farmList.length > 0) {
-      setFarmId(Number(farmList[0].farmId));
-      setFarmName(farmList[0].name);
+    if (farmList) {
+      if (farmList.length > 0) {
+        setFarmId(Number(farmList[0].farmId));
+        setFarmName(farmList[0].name);
+      }
       setIsLoading(false);
     }
   }, [farmList]);
