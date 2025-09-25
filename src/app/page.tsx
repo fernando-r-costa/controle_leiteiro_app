@@ -16,6 +16,9 @@ import {
 import { BiEdit, BiLogoWhatsapp } from "react-icons/bi";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
+// Variáveis globais
+const YOUTUBE_VIDEO_ID = "WUjOxBLZARU";
+
 // Fotos do Carrossel
 const screenshots = [
   { src: "/fotos/tela_controle.jpg", alt: "Tela de Controle Leiteiro" },
@@ -33,6 +36,7 @@ export default function LandingPage() {
       <main>
         <HeroSection />
         <FeaturesSection />
+        <VideoSection />
         <WhySection />
         <BenefitSection />
         <AboutSection />
@@ -76,6 +80,12 @@ const Header = () => (
           className="hover:text-tertiary-color transition-colors"
         >
           Funcionalidades
+        </a>
+        <a
+          href="#beneficios"
+          className="hover:text-tertiary-color transition-colors"
+        >
+          Benefícios
         </a>
         <a
           href="#sobre"
@@ -224,6 +234,16 @@ const HeroSection = () => (
         Acessar o App Gratuitamente
         <LuSquareArrowOutUpRight className="h-10 w-10 md:h-6 md:w-6" />
       </Link>
+      <a
+        href={`https://youtu.be/${YOUTUBE_VIDEO_ID}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-2 bg-light-color border-2 border-tertiary-color text-dark-color font-bold px-10 py-4 text-xl rounded-xl shadow-2xl hover:scale-110 transition-all"
+        aria-label="Assistir vídeo demonstrativo"
+      >
+        Veja como funciona
+        <LuYoutube className="h-10 w-10 md:h-6 md:w-6 text-red-600" />
+      </a>
     </div>
     <div className="mt-10 text-sm text-highlight-color bg-highlight-color/15 rounded-lg py-2 px-4 inline-block">
       Seja um <strong className="font-extrabold">Pioneiro</strong> e garanta
@@ -291,8 +311,51 @@ const FeaturesSection = () => (
   </section>
 );
 
+const VideoSection = () => (
+  <section className="py-16 bg-light-color/50">
+    <div className="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+      <div className="order-2 md:order-1">
+        <h2 className="text-3xl md:text-4xl font-bold text-dark-color mb-6">
+          Veja na prática como é simples!
+        </h2>
+        <div className="bg-secondary-color border-l-4 border-tertiary-color rounded-r-xl p-6">
+          <h3 className="font-bold text-2xl mb-3">
+            Como o vídeo vai te ajudar:
+          </h3>
+          <ul className="list-disc list-inside text-lg space-y-2">
+            <li>Conheça todas as funcionalidades em apenas 5 minutos.</li>
+            <li>Veja o passo a passo do lançamento da produção.</li>
+            <li>Entenda como acessar e interpretar os relatórios.</li>
+            <li>Descubra como o app facilita sua rotina no campo.</li>
+          </ul>
+          <div className="mt-6">
+            <a
+              href={`https://youtu.be/${YOUTUBE_VIDEO_ID}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-dark-color font-bold hover:text-tertiary-color transition-colors"
+            >
+              <LuYoutube className="h-6 w-6 text-red-600" />
+              Assistir em tela cheia no YouTube
+            </a>
+          </div>
+        </div>
+      </div>
+      <div className="order-1 md:order-2 aspect-video w-full max-w-xl mx-auto rounded-xl overflow-hidden shadow-2xl">
+        <iframe
+          src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}`}
+          title="Vídeo demonstrativo do Controle Leiteiro"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="w-full h-full"
+        />
+      </div>
+    </div>
+  </section>
+);
+
 const WhySection = () => (
-  <section className="py-20 md:py-28">
+  <section className="py-16 md:pb-28">
     <div className="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
       <div>
         <h2 className="text-3xl md:text-4xl font-bold ">
@@ -337,8 +400,8 @@ const WhySection = () => (
 );
 
 const BenefitSection = () => (
-  <section className="bg-tertiary-color ">
-    <div className="container mx-auto px-6 py-16 text-center">
+  <section id="beneficios" className="bg-tertiary-color py-20 md:py-28">
+    <div className="container mx-auto px-6 text-center">
       <h2 className="text-3xl font-bold">
         Uma parceria que começa hoje e gera frutos amanhã
       </h2>
@@ -380,9 +443,10 @@ const BenefitSection = () => (
       </p>
 
       <div className="text-sm text-center text-highlight-color">
-          *O status <strong className="font-extrabold">Pioneiro </strong>será concedido até dia{" "}
-          <strong className="font-extrabold">31/12/2025</strong>.
-        </div>
+        *O status <strong className="font-extrabold">Pioneiro </strong>será
+        concedido até dia <strong className="font-extrabold">31/12/2025</strong>
+        .
+      </div>
     </div>
   </section>
 );
@@ -457,6 +521,16 @@ const FinalCTASection = () => (
           Acessar o App Gratuitamente
           <LuSquareArrowOutUpRight className="h-10 w-10 md:h-6 md:w-6" />
         </Link>
+        <a
+          href={`https://youtu.be/${YOUTUBE_VIDEO_ID}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 bg-light-color border-2 border-tertiary-color text-dark-color font-bold px-10 py-4 text-xl rounded-xl shadow-2xl hover:scale-110 transition-all"
+          aria-label="Assistir vídeo demonstrativo"
+        >
+          Veja como funciona
+          <LuYoutube className="h-10 w-10 md:h-6 md:w-6 text-red-600" />
+        </a>
       </div>
     </div>
   </section>
