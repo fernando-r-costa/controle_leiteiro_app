@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -16,12 +16,38 @@ import {
 import { BiEdit, BiLogoWhatsapp } from "react-icons/bi";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
-// Variáveis globais
-const YOUTUBE_VIDEO_ID = "WUjOxBLZARU";
+// Configurações globais
+const CONFIG = {
+  YOUTUBE_VIDEO_ID: "WUjOxBLZARU",
+  COMPANY: {
+    name: "Controle Leiteiro",
+    email: "fernando.r.costa@outlook.com",
+    whatsapp: "553499633063",
+    social: {
+      youtube: "@controle.leiteiro",
+      instagram: "fernandorcosta25",
+      linkedin: "fernando-r-costa",
+    },
+  },
+  DATES: {
+    pioneerDeadline: "31/12/2025",
+  },
+} as const;
 
-// Fotos do Carrossel
-const screenshots = [
-  { src: "/fotos/tela_controle.jpg", alt: "Tela de Controle Leiteiro" },
+// Tipos
+interface Screenshot {
+  src: string;
+  alt: string;
+  priority?: boolean;
+}
+
+// Assets
+const SCREENSHOTS: Screenshot[] = [
+  {
+    src: "/fotos/tela_controle.jpg",
+    alt: "Tela de Controle Leiteiro",
+    priority: true,
+  },
   { src: "/fotos/tela_animal.jpg", alt: "Tela de Animais" },
   { src: "/fotos/tela_relatorio.jpg", alt: "Tela de Relatórios" },
   { src: "/fotos/tela_atividades.jpg", alt: "Tela de Atividades" },
@@ -43,6 +69,7 @@ export default function LandingPage() {
         <FinalCTASection />
       </main>
       <Footer />
+      <ScrollToTop />
     </div>
   );
 }
@@ -131,7 +158,7 @@ const PhotoCarousel = () => {
       setCurrentIndex((prevIndex) => {
         const newLastPossibleIndex = Math.max(
           0,
-          screenshots.length - newItemsPerPage
+          SCREENSHOTS.length - newItemsPerPage
         );
         return Math.min(prevIndex, newLastPossibleIndex);
       });
@@ -147,13 +174,13 @@ const PhotoCarousel = () => {
   const goToPrevious = () => {
     const isFirstSlide = currentIndex === 0;
     const newIndex = isFirstSlide
-      ? Math.max(0, screenshots.length - itemsPerPage)
+      ? Math.max(0, SCREENSHOTS.length - itemsPerPage)
       : currentIndex - 1;
     setCurrentIndex(newIndex);
   };
 
   const goToNext = () => {
-    const lastPossibleIndex = Math.max(0, screenshots.length - itemsPerPage);
+    const lastPossibleIndex = Math.max(0, SCREENSHOTS.length - itemsPerPage);
     const isLastSlide = currentIndex >= lastPossibleIndex;
     const newIndex = isLastSlide ? 0 : currentIndex + 1;
     setCurrentIndex(newIndex);
@@ -177,7 +204,7 @@ const PhotoCarousel = () => {
             transform: `translateX(-${currentIndex * (100 / itemsPerPage)}%)`,
           }}
         >
-          {screenshots.map((screen, index) => (
+          {SCREENSHOTS.map((screen, index) => (
             <div
               className="flex items-center justify-center p-2 md:p-4"
               key={index}
@@ -187,6 +214,8 @@ const PhotoCarousel = () => {
                 alt={screen.alt}
                 width={800}
                 height={1692}
+                priority={screen.priority}
+                loading={screen.priority ? "eager" : "lazy"}
                 className="shadow-2xl rounded-xl bg-black h-[400px] w-auto"
               />
             </div>
@@ -235,7 +264,7 @@ const HeroSection = () => (
         <LuSquareArrowOutUpRight className="h-10 w-10 md:h-6 md:w-6" />
       </Link>
       <a
-        href={`https://youtu.be/${YOUTUBE_VIDEO_ID}`}
+        href={`https://youtu.be/${CONFIG.YOUTUBE_VIDEO_ID}`}
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center justify-center gap-2 bg-light-color border-2 border-tertiary-color text-dark-color font-bold px-10 py-4 text-xl rounded-xl shadow-2xl hover:scale-110 transition-all"
@@ -330,10 +359,10 @@ const VideoSection = () => (
           </ul>
           <div className="mt-6">
             <a
-              href={`https://youtu.be/${YOUTUBE_VIDEO_ID}`}
+              href={`https://youtu.be/${CONFIG.YOUTUBE_VIDEO_ID}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-dark-color font-bold hover:text-tertiary-color transition-colors"
+              className="inline-flex items-center gap-2 text-dark-color font-bold hover:text-terciary-color transition-colors"
             >
               <LuYoutube className="h-6 w-6 text-red-600" />
               Assistir em tela cheia no YouTube
@@ -342,17 +371,50 @@ const VideoSection = () => (
         </div>
       </div>
       <div className="order-1 md:order-2 aspect-video w-full max-w-xl mx-auto rounded-xl overflow-hidden shadow-2xl">
+        <YouTubeEmbed />
+      </div>
+    </div>
+  </section>
+);
+
+const YouTubeEmbed = () => {
+  const [isIntersecting, setIsIntersecting] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsIntersecting(entry.isIntersecting);
+      },
+      { threshold: 0.5 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className="aspect-video w-full max-w-xl mx-auto rounded-xl overflow-hidden shadow-2xl"
+    >
+      {isIntersecting ? (
         <iframe
-          src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}`}
+          src={`https://www.youtube.com/embed/${CONFIG.YOUTUBE_VIDEO_ID}`}
           title="Vídeo demonstrativo do Controle Leiteiro"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
           className="w-full h-full"
         />
-      </div>
+      ) : (
+        <div className="w-full h-full bg-tertiary-color/25 animate-pulse" />
+      )}
     </div>
-  </section>
-);
+  );
+};
 
 const WhySection = () => (
   <section className="py-16 md:pb-28">
@@ -444,7 +506,10 @@ const BenefitSection = () => (
 
       <div className="text-sm text-center text-highlight-color">
         *O status <strong className="font-extrabold">Pioneiro </strong>será
-        concedido até dia <strong className="font-extrabold">31/12/2025</strong>
+        concedido até dia{" "}
+        <strong className="font-extrabold">
+          {CONFIG.DATES.pioneerDeadline}
+        </strong>
         .
       </div>
     </div>
@@ -522,7 +587,7 @@ const FinalCTASection = () => (
           <LuSquareArrowOutUpRight className="h-10 w-10 md:h-6 md:w-6" />
         </Link>
         <a
-          href={`https://youtu.be/${YOUTUBE_VIDEO_ID}`}
+          href={`https://youtu.be/${CONFIG.YOUTUBE_VIDEO_ID}`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-center gap-2 bg-light-color border-2 border-tertiary-color text-dark-color font-bold px-10 py-4 text-xl rounded-xl shadow-2xl hover:scale-110 transition-all"
@@ -618,3 +683,49 @@ const Footer = () => (
     </div>
   </footer>
 );
+
+const ScrollToTop = () => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const toggleVisibility = () => {
+      if (window.pageYOffset > 300) {
+        setIsVisible(true);
+      } else {
+        setIsVisible(false);
+      }
+    };
+
+    window.addEventListener("scroll", toggleVisibility);
+    return () => window.removeEventListener("scroll", toggleVisibility);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  return isVisible ? (
+    <button
+      onClick={scrollToTop}
+      className="fixed bottom-8 right-8 bg-tertiary-color p-3 rounded-full shadow-lg hover:scale-110 transition-transform z-50"
+      aria-label="Voltar ao topo"
+    >
+      <svg
+        className="w-6 h-6"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M5 10l7-7m0 0l7 7m-7-7v18"
+        />
+      </svg>
+    </button>
+  ) : null;
+};
