@@ -5,6 +5,7 @@ import LogoFRC from "../../../../../public/frc_logo_removebg.png";
 const Header = () => {
   return (
     <header className="flex justify-between px-10 py-3 items-center bg-primary-color sticky top-0 z-50">
+      <Link href="/login" className="cursor-pointer">
       <div className="flex items-center gap-2 text-light-color font-light text-[1.8em] md:scale-110">
         <Image
           src="/icon_CL.png"
@@ -20,6 +21,7 @@ const Header = () => {
           </span>
         </span>
       </div>
+      </Link>
       <div className="flex items-center text-light-color text-[1.2em] sm:text-[1.5em] font-light">
         {/* <Link
           className="w-1/12 max-w-12 min-w-20 mx-[6vw]"

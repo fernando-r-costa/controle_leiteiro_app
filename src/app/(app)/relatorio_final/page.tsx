@@ -123,12 +123,7 @@ const TableForm: React.FC = () => {
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    router.push("/atividades");
-  };
-
-  const goBack = () => {
-    setIsLoading(true);
-    router.push("/relatorios");
+    router.replace("/atividades");
   };
 
   return (
@@ -141,10 +136,7 @@ const TableForm: React.FC = () => {
 
       {error && <FormText type="error">{error}</FormText>}
 
-      <Button type="submit">Fechar</Button>
-      <Button type="button" onClick={goBack}>
-        Voltar
-      </Button>
+      <Button type="submit">Voltar</Button>
     </Form>
   );
 };

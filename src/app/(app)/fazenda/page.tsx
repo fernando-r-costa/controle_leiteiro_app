@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
@@ -86,17 +86,18 @@ const FarmForm: React.FC = () => {
     router.push(`/cadastro_fazenda`);
   };
 
-  const logout = () => {
+  const logout = async () => {
     const confirmLogout = window.confirm(
       "Tem certeza que deseja sair da sua conta?"
     );
     if (confirmLogout) {
       setShowMessage(true);
-      setTimeout(() => {
+      setTimeout(async () => {
         if (typeof window !== "undefined") {
           localStorage.clear();
+          await mutate((key) => true, undefined, { revalidate: false });
         }
-        router.push("/login");
+        window.location.href = '/login';
       }, 3000);
     }
   };

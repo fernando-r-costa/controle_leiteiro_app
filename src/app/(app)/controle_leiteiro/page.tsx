@@ -107,7 +107,7 @@ const ControlsDatesForm: React.FC = () => {
     localStorage.removeItem("controlDate");
     localStorage.removeItem("newControl");
     localStorage.removeItem("controlDateList");
-    router.push("/atividades");
+    router.replace("/atividades");
   };
 
   const hasControls =

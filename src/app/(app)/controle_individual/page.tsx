@@ -446,7 +446,7 @@ const IndividualProductionForm: React.FC = () => {
 
       if (confirmFinish) {
         setIsLoading(true);
-        router.push(`/controle_final`);
+        router.replace(`/controle_final`);
       }
     } catch (error) {
       setError("Erro ao verificar dados finais");
@@ -455,7 +455,7 @@ const IndividualProductionForm: React.FC = () => {
 
   const goBack = () => {
     setIsLoading(true);
-    router.push("/controle_leiteiro");
+    router.replace("/controle_leiteiro");
   };
 
   return (

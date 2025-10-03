@@ -100,7 +100,7 @@ const NewCowForm: React.FC = () => {
 
   const goBack = () => {
     setIsLoading(true);
-    router.push("/cadastro_animais");
+    router.replace("/cadastro_animais");
   };
 
   useEffect(() => {

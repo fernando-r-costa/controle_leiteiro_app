@@ -26,7 +26,7 @@ const EndForm: React.FC = () => {
       localStorage.removeItem('newControl');
       localStorage.removeItem('controlDateList');
 
-      router.push("/atividades");
+      router.replace("/atividades");
     }, 5000);
   };
 

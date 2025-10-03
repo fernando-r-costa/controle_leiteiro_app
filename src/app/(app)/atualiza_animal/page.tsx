@@ -171,7 +171,7 @@ const CowUpdateForm: React.FC = () => {
 
   const goBack = () => {
     setIsLoading(true);
-    router.push("/cadastro_animais");
+    router.replace("/cadastro_animais");
   };
 
   const deleteAnimal = async () => {
@@ -199,7 +199,7 @@ const CowUpdateForm: React.FC = () => {
 
       alert("Animal excluído com sucesso!");
 
-      router.push("/cadastro_animais");
+      router.replace("/cadastro_animais");
     } catch (error: any) {
       setError(error.response?.data?.error || "Erro ao excluir o animal.");
       setIsLoading(false);

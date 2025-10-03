@@ -51,7 +51,7 @@ const ProductionDateForm: React.FC = () => {
 
   const goBack = () => {
     setIsLoading(true);
-    router.push("/controle_leiteiro");
+    router.replace("/controle_leiteiro");
   };
 
   return (

@@ -16,7 +16,7 @@ const ActivitiesForm: React.FC = () => {
 
   const goBack = () => {
     setIsLoading(true);
-    router.push(`/atividades`);
+    router.replace(`/atividades`);
   };
 
   useEffect(() => {
