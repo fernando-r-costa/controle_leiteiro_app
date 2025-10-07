@@ -15,9 +15,9 @@ export const metadata: Metadata = {
   },
   description: APP_DESCRIPTION,
   manifest: "manifest.json",
-  metadataBase: new URL("https://controleleiteiro.com.br"),
+  metadataBase: new URL("https://www.controleleiteiro.com.br"),
   alternates: {
-    canonical: "/",
+    canonical: "https://www.controleleiteiro.com.br/",
   },
   appleWebApp: {
     capable: true,
@@ -36,6 +36,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: APP_NAME,
+    url: "https://www.controleleiteiro.com.br/",
     title: {
       default: APP_DEFAULT_TITLE,
       template: APP_TITLE_TEMPLATE,

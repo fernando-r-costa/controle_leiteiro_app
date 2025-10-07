@@ -12,7 +12,22 @@ export default withPWA({
     ignoreBuildErrors: true,
   },
   experimental: {
-    urlImports: ["https://cdn.skypack.dev"]
-  }
+    urlImports: ["https://cdn.skypack.dev"],
+  },
 
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: '^(?!www\\.).*$',
+          },
+        ],
+        destination: 'https://www.controleleiteiro.com.br/:path*',
+        permanent: true,
+      },
+    ];
+  },
 });
