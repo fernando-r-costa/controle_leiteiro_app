@@ -3,7 +3,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR, { mutate } from "swr";
 import axios from "axios";
-import { formatDateForInput, normalizeDateInputForBackend } from '../../utils/formatters';
+import {
+  formatDateForInput,
+  normalizeDateInputForBackend,
+} from "../../utils/formatters";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
@@ -40,6 +43,7 @@ const CowUpdateForm: React.FC = () => {
   const [cowNumber, setNumber] = useState<string>("");
   const [cowName, setCowName] = useState<string>("");
   const [animalId, setAnimalId] = useState<number>();
+  console.log("🚀 ~ animalId:", animalId);
   const [calvingDate, setCalvingDate] = useState<string>("");
   const [expectedDate, setExpectedDate] = useState<string | null>(null);
   const [error, setError] = useState<string>("");
@@ -93,9 +97,7 @@ const CowUpdateForm: React.FC = () => {
       setAnimalId(firstCow.animalId);
       setCowName(firstCow.name || "");
       setCalvingDate(firstCow.calvingDate);
-      setExpectedDate(
-        formatDateForInput(firstCow.expectedDate ?? null)
-      );
+      setExpectedDate(formatDateForInput(firstCow.expectedDate ?? null));
 
       mutate(
         `${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`,
@@ -175,26 +177,34 @@ const CowUpdateForm: React.FC = () => {
       return;
     }
 
-    const confirmDelete = window.confirm(
-      "Tem certeza de que deseja excluir este animal?"
-    );
-    if (!confirmDelete) return;
-
     setIsLoading(true);
     setError("");
 
-    const deleteUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}animal/farmer/${farmerId}/farm/${farmId}/animal/${animalId}`;
+    const delay = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
 
     try {
-      await axios.delete(deleteUrl, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await delay(2000);
 
-      alert("Animal excluído com sucesso!");
+      const confirmDelete = window.confirm(
+        `Tem certeza de que deseja excluir o animal: ${cowNumber} -${
+          cowName || "Sem nome"
+        }?`
+      );
 
-      router.replace("/cadastro_animais");
+      if (confirmDelete) {
+        const deleteUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}animal/farmer/${farmerId}/farm/${farmId}/animal/${animalId}`;
+
+        await axios.delete(deleteUrl, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        alert("Animal excluído com sucesso!");
+        router.replace("/cadastro_animais");
+      }
     } catch (error: any) {
       setError(error.response?.data?.error || "Erro ao excluir o animal.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -214,7 +224,9 @@ const CowUpdateForm: React.FC = () => {
           ?.slice()
           .sort((a, b) => parseInt(a.number) - parseInt(b.number))
           .map((cow) => ({
-            label: `${cow.number} - ${cow.name || ""} ${getPregnancyStatus(cow.expectedDate ?? null)}`,
+            label: `${cow.number} - ${cow.name || ""} ${getPregnancyStatus(
+              cow.expectedDate ?? null
+            )}`,
             value: `${cow.number}`,
           }))}
       />
