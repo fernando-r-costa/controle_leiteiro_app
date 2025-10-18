@@ -7,7 +7,7 @@ const withPWA = withPWAInit({
   sw: "service-worker.js",
 });
 
-const isProd = process.env.NODE_ENV === 'production';
+const isVercelProduction = process.env.VERCEL_ENV === 'production';
 
 export default withPWA({
   typescript: {
@@ -17,19 +17,22 @@ export default withPWA({
     urlImports: ["https://cdn.skypack.dev"],
   },
 
-  redirects: isProd ? async () => {
-    return [
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: '^(?!www\\.).*$',
-          },
-        ],
-        destination: 'https://www.controleleiteiro.com.br/:path*',
-        permanent: true,
-      },
-    ];
-  } : undefined,
+  async redirects() {
+    if (isVercelProduction) {
+      return [
+        {
+          source: '/:path*',
+          has: [
+            {
+              type: 'host',
+              value: '^(?!www\\.).*$',
+            },
+          ],
+          destination: 'https://www.controleleiteiro.com.br/:path*',
+          permanent: true,
+        },
+      ];
+    }
+    return [];
+  },
 });
