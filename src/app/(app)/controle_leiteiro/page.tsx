@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import useSWR, { mutate } from "swr";
+import { formatDateForDisplay } from '../../utils/formatters';
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
@@ -41,13 +42,9 @@ const ControlsDatesForm: React.FC = () => {
   } = useSWR<DateControl[]>(apiDairyControlUrl, fetcher, {
     dedupingInterval: 0,
     refreshInterval: 0,
-    revalidateOnFocus: true,
+    revalidateOnFocus: false,
     revalidateOnMount: true,
   });
-
-  const formatDateForDisplay = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString("pt-BR");
-  };
 
   useEffect(() => {
     if (dateControlListLoading) {

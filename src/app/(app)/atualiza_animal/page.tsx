@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR, { mutate } from "swr";
 import axios from "axios";
+import { formatDateForInput, normalizeDateInputForBackend } from '../../utils/formatters';
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
@@ -60,14 +61,6 @@ const CowUpdateForm: React.FC = () => {
     }
   );
 
-  const formatExpectedDateForDisplay = (date: string | null): string => {
-    return date || "";
-  };
-
-  const formatExpectedDateForBackend = (date: string | null): string | null => {
-    return date === "" ? null : date;
-  };
-
   const getPregnancyStatus = (expectedDate: string | null): string => {
     if (!expectedDate) return "";
 
@@ -101,7 +94,7 @@ const CowUpdateForm: React.FC = () => {
       setCowName(firstCow.name || "");
       setCalvingDate(firstCow.calvingDate);
       setExpectedDate(
-        formatExpectedDateForDisplay(firstCow.expectedDate ?? null)
+        formatDateForInput(firstCow.expectedDate ?? null)
       );
 
       mutate(
@@ -140,7 +133,7 @@ const CowUpdateForm: React.FC = () => {
     setError("");
     setIsLoading(true);
 
-    const formattedExpectedDate = formatExpectedDateForBackend(expectedDate);
+    const formattedExpectedDate = normalizeDateInputForBackend(expectedDate);
 
     const animalData: Animal = {
       animalId: animalId || 0,
@@ -238,7 +231,7 @@ const CowUpdateForm: React.FC = () => {
       <FormInput
         size="large"
         type={"date"}
-        value={calvingDate}
+        value={formatDateForInput(calvingDate)}
         onChange={(e) => setCalvingDate(e.target.value)}
       />
 
@@ -246,9 +239,9 @@ const CowUpdateForm: React.FC = () => {
       <FormInput
         size="large"
         type={"date"}
-        value={formatExpectedDateForDisplay(expectedDate)}
+        value={formatDateForInput(expectedDate)}
         onChange={(e) => {
-          setExpectedDate(formatExpectedDateForBackend(e.target.value));
+          setExpectedDate(normalizeDateInputForBackend(e.target.value));
         }}
       />
 

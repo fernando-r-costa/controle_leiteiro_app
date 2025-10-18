@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import useSWR, { mutate } from "swr";
 import axios from "axios";
@@ -70,12 +70,20 @@ const IndividualProductionForm: React.FC = () => {
   const apiAnimalUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}animal`;
   const apiDairyControlUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}dairy-control`;
 
+  const apiKeyDate = useMemo(() => {
+  if (!controlDate) return null;
+  if (!controlDate.includes('T')) {
+    return `${controlDate}T00:00:00.000Z`;
+  }
+  return controlDate;
+}, [controlDate]);
+
   const {
     data: dairyControlRecords,
     error: dairyControlError,
     isLoading: dairyControlLoading,
   } = useSWR<DairyProductionRecord[]>(
-    `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${controlDate}`,
+    `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${apiKeyDate}`,
     fetcher,
     {
       dedupingInterval: 0,
@@ -303,9 +311,9 @@ const IndividualProductionForm: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
-
+      
       await mutate(
-        `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${controlDate}`
+        `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${apiKeyDate}`
       );
 
       setCowNumber("");
@@ -359,7 +367,7 @@ const IndividualProductionForm: React.FC = () => {
       );
 
       await mutate(
-        `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${controlDate}`
+        `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${apiKeyDate}`
       );
 
       setCowNumber("");
@@ -408,7 +416,7 @@ const IndividualProductionForm: React.FC = () => {
 
     try {
       const updatedRecords = await axios.get(
-        `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${controlDate}`,
+        `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${apiKeyDate}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -467,7 +475,9 @@ const IndividualProductionForm: React.FC = () => {
           : "Atualizar Controle Leiteiro"}
       </FormText>
       <FormText type="label-short">{`Data: ${
-        controlDate ? new Date(controlDate).toLocaleDateString("pt-BR") : ""
+        controlDate ? new Date(controlDate).toLocaleDateString("pt-BR", {
+          timeZone: 'UTC'
+        }) : ""
       }`}</FormText>
 
       <FormText type="label-large">Selecione o animal:</FormText>

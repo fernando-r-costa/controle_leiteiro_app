@@ -7,6 +7,8 @@ const withPWA = withPWAInit({
   sw: "service-worker.js",
 });
 
+const isProd = process.env.NODE_ENV === 'production';
+
 export default withPWA({
   typescript: {
     ignoreBuildErrors: true,
@@ -15,7 +17,7 @@ export default withPWA({
     urlImports: ["https://cdn.skypack.dev"],
   },
 
-  async redirects() {
+  redirects: isProd ? async () => {
     return [
       {
         source: '/:path*',
@@ -29,5 +31,5 @@ export default withPWA({
         permanent: true,
       },
     ];
-  },
+  } : undefined,
 });

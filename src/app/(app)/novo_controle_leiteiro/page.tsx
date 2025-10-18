@@ -26,7 +26,7 @@ const ProductionDateForm: React.FC = () => {
       return;
     }
 
-    if (dateControlList?.some((date) => date.dairyDateControl === controlDate)) {
+    if (dateControlList?.some((date) => date.dairyDateControl.split('T')[0] === controlDate)) {
       alert("Já existe um controle leiteiro nesta data!");
       return;
     }

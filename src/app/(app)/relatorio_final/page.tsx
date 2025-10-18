@@ -66,7 +66,9 @@ const TableForm: React.FC = () => {
   const [tableData, setTableData] = useState<TableData[]>([]);
   const [title, setTitle] = useState<{ farm: string; date: string }>({
     farm: farmName || "",
-    date: controlDate ? new Date(controlDate).toLocaleDateString('pt-BR') : "",
+    date: controlDate ? new Date(controlDate).toLocaleDateString("pt-BR", {
+    timeZone: 'UTC',
+  }) : "",
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);

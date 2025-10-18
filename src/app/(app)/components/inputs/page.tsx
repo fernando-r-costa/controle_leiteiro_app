@@ -24,9 +24,9 @@ const FormInput = forwardRef<HTMLInputElement | HTMLSelectElement, InputProps>(
             type={type}
             placeholder={placeholder}
             value={value}
-            onChange={onChange}
-            onFocus={onFocus} 
-            onBlur={onBlur}
+            onChange={onChange as (e: React.ChangeEvent<HTMLInputElement>) => void}
+            onFocus={onFocus as React.FocusEventHandler<HTMLInputElement>}
+            onBlur={onBlur as React.FocusEventHandler<HTMLInputElement>}
             className="text-[1.4em] p-2 outline-none rounded-lg shadow-lg cursor-pointer mb-8 focus:shadow-tertiary-color hover:shadow-tertiary-color"
             ref={ref as React.RefObject<HTMLInputElement>}
           />
@@ -37,9 +37,9 @@ const FormInput = forwardRef<HTMLInputElement | HTMLSelectElement, InputProps>(
             type={type}
             placeholder={placeholder}
             value={value}
-            onChange={onChange}
-            onFocus={onFocus}
-            onBlur={onBlur}
+            onChange={onChange as (e: React.ChangeEvent<HTMLInputElement>) => void}
+            onFocus={onFocus as React.FocusEventHandler<HTMLInputElement>}
+            onBlur={onBlur as React.FocusEventHandler<HTMLInputElement>}
             className="w-24 text-[1.4em] p-2 outline-none rounded-lg shadow-lg cursor-pointer focus:shadow-tertiary-color hover:shadow-tertiary-color"
             ref={ref as React.RefObject<HTMLInputElement>}
           />
@@ -48,9 +48,9 @@ const FormInput = forwardRef<HTMLInputElement | HTMLSelectElement, InputProps>(
         return (
           <select
             value={value}
-            onChange={onChange}
-            onFocus={onFocus} 
-            onBlur={onBlur}
+            onChange={onChange as (e: React.ChangeEvent<HTMLSelectElement>) => void}
+            onFocus={onFocus as React.FocusEventHandler<HTMLSelectElement>}
+            onBlur={onBlur as React.FocusEventHandler<HTMLSelectElement>}
             className="text-[1.4em] p-2 outline-none rounded-lg shadow-lg cursor-pointer mb-8 focus:shadow-tertiary-color hover:shadow-tertiary-color"
             ref={ref as React.RefObject<HTMLSelectElement>}
           >

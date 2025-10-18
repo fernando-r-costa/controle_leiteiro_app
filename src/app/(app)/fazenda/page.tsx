@@ -98,7 +98,7 @@ const FarmForm: React.FC = () => {
           await mutate((key) => true, undefined, { revalidate: false });
         }
         window.location.href = '/login';
-      }, 3000);
+      }, 2000);
     }
   };
 

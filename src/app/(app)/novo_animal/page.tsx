@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { formatDateForInput, normalizeDateInputForBackend } from "../../utils/formatters";
 import Form from "../components/form/page";
 import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
@@ -34,22 +35,6 @@ const NewCowForm: React.FC = () => {
 
   const apiAnimalUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}animal`;
 
-  const formatCalvingDateForDisplay = (date: string | null): string => {
-    return date || "";
-  };
-
-  const formatCalvingDateForBackend = (date: string | null): string | null => {
-    return date === "" ? null : date;
-  };
-
-  const formatExpectedDateForDisplay = (date: string | null): string => {
-    return date || "";
-  };
-
-  const formatExpectedDateForBackend = (date: string | null): string | null => {
-    return date === "" ? null : date;
-  };
-
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -66,8 +51,8 @@ const NewCowForm: React.FC = () => {
     setError("");
     setIsLoading(true);
 
-    const formattedCalvingDate = formatCalvingDateForBackend(calvingDate);
-    const formattedExpectedDate = formatExpectedDateForBackend(expectedDate);
+    const formattedCalvingDate = normalizeDateInputForBackend(calvingDate);
+    const formattedExpectedDate = normalizeDateInputForBackend(expectedDate);
 
     const animalData: Animal = {
       name: cowName || "",
@@ -132,9 +117,9 @@ const NewCowForm: React.FC = () => {
       <FormInput
         size="large"
         type={"date"}
-        value={formatCalvingDateForDisplay(calvingDate)}
+        value={formatDateForInput(calvingDate)}
         onChange={(e) => {
-          setCalvingDate(formatCalvingDateForBackend(e.target.value));
+          setCalvingDate(normalizeDateInputForBackend(e.target.value));
         }}
       />
 
@@ -142,9 +127,9 @@ const NewCowForm: React.FC = () => {
       <FormInput
         size="large"
         type={"date"}
-        value={formatExpectedDateForDisplay(expectedDate)}
+        value={formatDateForInput(expectedDate)}
         onChange={(e) => {
-          setExpectedDate(formatExpectedDateForBackend(e.target.value));
+          setExpectedDate(normalizeDateInputForBackend(e.target.value));
         }}
       />
 
