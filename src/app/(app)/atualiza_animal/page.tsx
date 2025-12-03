@@ -187,7 +187,7 @@ const CowUpdateForm: React.FC = () => {
       await delay(2000);
 
       const confirmDelete = window.confirm(
-        `Tem certeza de que deseja excluir o animal: ${cowNumber} -${
+        `Tem certeza de que deseja excluir o animal: ${cowNumber} ${
           cowName || "Sem nome"
         }?`
       );
