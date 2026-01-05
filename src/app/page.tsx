@@ -274,11 +274,6 @@ const HeroSection = () => (
         <LuYoutube className="h-10 w-10 md:h-6 md:w-6 text-red-600" />
       </a>
     </div>
-    <div className="mt-10 text-sm text-highlight-color bg-highlight-color/15 rounded-lg py-2 px-4 inline-block">
-      Seja um <strong className="font-extrabold">Pioneiro</strong> e garanta
-      acesso exclusivo a benefícios nos serviços futuros da plataforma.
-      Cadastre-se agora!
-    </div>
     <div className="mt-16 relative">
       <PhotoCarousel />
     </div>
@@ -468,19 +463,12 @@ const BenefitSection = () => (
         Uma parceria que começa hoje e gera frutos amanhã
       </h2>
       <p className="mt-4 text-lg max-w-3xl mx-auto">
-        Você está nos ajudando a construir o futuro da gestão leiteira. Como{" "}
-        <strong className="underline">Pioneiro</strong>*, sua jornada conosco
-        começa agora, na fase experimental. Para celebrar essa parceria,
-        queremos que você seja o primeiro a colher os frutos quando novas
-        funcionalidades forem lançadas:
+        Você está nos ajudando a construir o futuro da gestão leiteira. Sua
+        jornada conosco começa agora, na fase experimental, e, em breve, terá
+        acesso a novas funcionalidades lançadas:
       </p>
 
       <div className="mt-8 bg-light-color/60 rounded-lg p-6 max-w-2xl mx-auto text-left">
-        <p className="text-xl font-bold text-center mb-4">
-          Sua conta será bonificada com{" "}
-          <span className="underline">3 meses de acesso gratuito</span> as novas
-          ferramentas avançadas como:
-        </p>
         <ul className="space-y-3 list-disc list-inside text-base">
           <li>
             <strong>Exportação profissional de relatórios:</strong> gere e baixe
@@ -497,20 +485,6 @@ const BenefitSection = () => (
             qualquer outra ferramenta avançada que for lançada.
           </li>
         </ul>
-      </div>
-
-      <p className="my-8 text-base max-w-2xl mx-auto">
-        Além disso, seu status de <strong>Pioneiro</strong> garantirá que você
-        sempre tenha as melhores condições e descontos em nossa jornada juntos.
-      </p>
-
-      <div className="text-sm text-center text-highlight-color">
-        *O status <strong className="font-extrabold">Pioneiro </strong>será
-        concedido até dia{" "}
-        <strong className="font-extrabold">
-          {CONFIG.DATES.pioneerDeadline}
-        </strong>
-        .
       </div>
     </div>
   </section>
