@@ -7,7 +7,7 @@ import FormText from "../components/texts/page";
 import FormInput from "../components/inputs/page";
 import Button from "../components/buttons/page";
 
-interface  Login {
+interface Login {
   token: string;
   farmerId: number;
 }
@@ -45,7 +45,7 @@ const LoginForm: React.FC = () => {
         {
           email,
           password,
-        }
+        },
       );
       const { token, farmerId } = response.data;
       localStorage.setItem("authToken", token);
@@ -56,7 +56,7 @@ const LoginForm: React.FC = () => {
       setIsLoading(false);
       setError(
         error.response?.data?.error ||
-          "Erro ao fazer login. Verifique seu e-mail e senha."
+          "Erro ao fazer login. Verifique seu e-mail e senha.",
       );
     }
   };
@@ -72,7 +72,7 @@ const LoginForm: React.FC = () => {
 
   return (
     <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
-      <FormText type="title">Login:</FormText>
+      {/* <FormText type="title">Login:</FormText>
 
       <FormText type="label-large">E-MAIL:</FormText>
       <FormInput
@@ -95,7 +95,11 @@ const LoginForm: React.FC = () => {
       <Button type="submit">Entrar</Button>
       <Button type="button" onClick={newFarmer}>
         Novo cadastro
-      </Button>
+      </Button> */}
+      <div style={{ textAlign: "center", marginTop: "20px" }}>
+      <h1>O sistema está em manutenção</h1>
+      <p>Por favor, tente novamente mais tarde.</p>
+    </div>
     </Form>
   );
 };
