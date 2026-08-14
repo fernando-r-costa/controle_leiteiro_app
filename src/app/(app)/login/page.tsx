@@ -72,7 +72,7 @@ const LoginForm: React.FC = () => {
 
   return (
     <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
-      {/* <FormText type="title">Login:</FormText>
+      <FormText type="title">Login:</FormText>
 
       <FormText type="label-large">E-MAIL:</FormText>
       <FormInput
@@ -95,11 +95,7 @@ const LoginForm: React.FC = () => {
       <Button type="submit">Entrar</Button>
       <Button type="button" onClick={newFarmer}>
         Novo cadastro
-      </Button> */}
-      <div style={{ textAlign: "center", marginTop: "20px" }}>
-      <h1>O sistema está em manutenção</h1>
-      <p>Por favor, tente novamente mais tarde.</p>
-    </div>
+      </Button>
     </Form>
   );
 };
