@@ -62,6 +62,8 @@ const TableForm: React.FC = () => {
     typeof window !== "undefined" ? localStorage.getItem("controlDate") : null;
   const farmName =
     typeof window !== "undefined" ? localStorage.getItem("farmName") : null;
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
 
   const [tableData, setTableData] = useState<TableData[]>([]);
   const [title, setTitle] = useState<{ farm: string; date: string }>({
@@ -72,6 +74,7 @@ const TableForm: React.FC = () => {
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
 
   const apiDairyControlUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}dairy-control`;
   const {
@@ -128,6 +131,58 @@ const TableForm: React.FC = () => {
     router.replace("/atividades");
   };
 
+  const handleExportExcel = async () => {
+    if (isExporting) return;
+
+    if (!farmerId || !farmId || !controlDate || !token) {
+      setError("Dados necessários para exportar o relatório não estão disponíveis.");
+      return;
+    }
+
+    setError("");
+    setIsExporting(true);
+
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}report/farmer/${farmerId}/farm/${farmId}/date/${controlDate}/excel`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob",
+        }
+      );
+
+      const contentDisposition = response.headers["content-disposition"];
+      const encodedFilename = contentDisposition?.match(
+        /filename\*=UTF-8''([^;]+)/i
+      )?.[1];
+      const plainFilename = contentDisposition?.match(
+        /filename="?([^";]+)"?/i
+      )?.[1];
+      const filename = encodedFilename
+        ? decodeURIComponent(encodedFilename)
+        : plainFilename || "controle-leiteiro.xlsx";
+      const blob =
+        response.data instanceof Blob
+          ? response.data
+          : new Blob([response.data], {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(downloadUrl);
+    } catch {
+      setError("Erro ao exportar o relatório.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
       {dairyControlList && dairyControlList.length > 0 ? (
@@ -138,6 +193,13 @@ const TableForm: React.FC = () => {
 
       {error && <FormText type="error">{error}</FormText>}
 
+      <Button
+        type="button"
+        onClick={handleExportExcel}
+        disabled={isExporting}
+      >
+        {isExporting ? "Exportando..." : "Exportar Excel"}
+      </Button>
       <Button type="submit">Voltar</Button>
     </Form>
   );
