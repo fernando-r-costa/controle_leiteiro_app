@@ -43,6 +43,27 @@ interface TableData {
   production?: string;
 }
 
+type IntelligentReportPersistenceStatus =
+  | "not_generated"
+  | "processing"
+  | "failed"
+  | "ready";
+
+const INTELLIGENT_REPORT_PERSISTENCE_STATUSES: IntelligentReportPersistenceStatus[] = [
+  "not_generated",
+  "processing",
+  "failed",
+  "ready",
+];
+
+function isIntelligentReportPersistenceStatus(
+  value: unknown
+): value is IntelligentReportPersistenceStatus {
+  return INTELLIGENT_REPORT_PERSISTENCE_STATUSES.includes(
+    value as IntelligentReportPersistenceStatus
+  );
+}
+
 const INTELLIGENT_REPORT_MINIMUM_DURATION_MS = 20000;
 const INTELLIGENT_REPORT_STATUS_STEPS = [
   { delay: 0, message: "Preparando sua análise inteligente..." },
@@ -90,6 +111,14 @@ const TableForm: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isGeneratingIntelligentReport, setIsGeneratingIntelligentReport] =
     useState(false);
+  const [isDownloadingIntelligentReport, setIsDownloadingIntelligentReport] =
+    useState(false);
+  const [intelligentReportPersistenceStatus, setIntelligentReportPersistenceStatus] =
+    useState<IntelligentReportPersistenceStatus>("not_generated");
+  const [isLoadingIntelligentReportStatus, setIsLoadingIntelligentReportStatus] =
+    useState(true);
+  const [intelligentReportStatusRefresh, setIntelligentReportStatusRefresh] =
+    useState(0);
   const [intelligentReportStatus, setIntelligentReportStatus] = useState<string>(
     INTELLIGENT_REPORT_STATUS_STEPS[0].message
   );
@@ -97,6 +126,7 @@ const TableForm: React.FC = () => {
   const intelligentReportMinimumTimerRef = useRef<number | null>(null);
   const intelligentReportMinimumResolveRef = useRef<(() => void) | null>(null);
   const intelligentReportAbortRef = useRef<AbortController | null>(null);
+  const intelligentReportStatusAbortRef = useRef<AbortController | null>(null);
   const intelligentReportDownloadUrlRef = useRef<string | null>(null);
   const intelligentReportInProgressRef = useRef(false);
   const isMountedRef = useRef(true);
@@ -121,6 +151,7 @@ const TableForm: React.FC = () => {
       isMountedRef.current = false;
       clearIntelligentReportTimers();
       intelligentReportAbortRef.current?.abort();
+      intelligentReportStatusAbortRef.current?.abort();
       if (intelligentReportDownloadUrlRef.current) {
         URL.revokeObjectURL(intelligentReportDownloadUrlRef.current);
         intelligentReportDownloadUrlRef.current = null;
@@ -128,6 +159,53 @@ const TableForm: React.FC = () => {
       intelligentReportInProgressRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    intelligentReportStatusAbortRef.current?.abort();
+    setIntelligentReportPersistenceStatus("not_generated");
+
+    if (!farmerId || !farmId || !controlDate || !token) {
+      setIsLoadingIntelligentReportStatus(false);
+      return;
+    }
+
+    const abortController = new AbortController();
+    intelligentReportStatusAbortRef.current = abortController;
+    setIsLoadingIntelligentReportStatus(true);
+
+    const loadIntelligentReportStatus = async () => {
+      try {
+        const response = await axios.get<{ status: IntelligentReportPersistenceStatus }>(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}report/farmer/${farmerId}/farm/${farmId}/date/${controlDate}/intelligent/status`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            signal: abortController.signal,
+          }
+        );
+        const status = response.data?.status;
+
+        if (
+          !abortController.signal.aborted &&
+          isIntelligentReportPersistenceStatus(status)
+        ) {
+          setIntelligentReportPersistenceStatus(status);
+        }
+      } catch (statusError) {
+        if (!axios.isCancel(statusError) && !abortController.signal.aborted) {
+          setIntelligentReportPersistenceStatus("not_generated");
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setIsLoadingIntelligentReportStatus(false);
+          intelligentReportStatusAbortRef.current = null;
+        }
+      }
+    };
+
+    void loadIntelligentReportStatus();
+
+    return () => abortController.abort();
+  }, [farmerId, farmId, controlDate, token, intelligentReportStatusRefresh]);
 
   const apiDairyControlUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}dairy-control`;
   const {
@@ -237,38 +315,49 @@ const TableForm: React.FC = () => {
   };
 
   const handleGenerateIntelligentReport = async () => {
-    if (intelligentReportInProgressRef.current) return;
+    if (
+      intelligentReportInProgressRef.current ||
+      intelligentReportPersistenceStatus === "processing"
+    ) return;
 
     if (!farmerId || !farmId || !controlDate || !token) {
       setError("Dados necessários para exportar o relatório não estão disponíveis.");
       return;
     }
 
+    const shouldGenerate = intelligentReportPersistenceStatus !== "ready";
+
     setError("");
     intelligentReportInProgressRef.current = true;
-    setIsGeneratingIntelligentReport(true);
-    setIntelligentReportStatus(INTELLIGENT_REPORT_STATUS_STEPS[0].message);
+    let minimumDuration: Promise<void> | null = null;
 
-    INTELLIGENT_REPORT_STATUS_STEPS.slice(1).forEach(({ delay, message }) => {
-      const timer = window.setTimeout(
-        () => setIntelligentReportStatus(message),
-        delay
-      );
-      intelligentReportTimersRef.current.push(timer);
-    });
+    if (shouldGenerate) {
+      setIsGeneratingIntelligentReport(true);
+      setIntelligentReportStatus(INTELLIGENT_REPORT_STATUS_STEPS[0].message);
 
-    const minimumDuration = new Promise<void>((resolve) => {
-      const finishMinimumDuration = () => {
-        intelligentReportMinimumTimerRef.current = null;
-        intelligentReportMinimumResolveRef.current = null;
-        resolve();
-      };
-      intelligentReportMinimumResolveRef.current = finishMinimumDuration;
-      intelligentReportMinimumTimerRef.current = window.setTimeout(
-        finishMinimumDuration,
-        INTELLIGENT_REPORT_MINIMUM_DURATION_MS
-      );
-    });
+      INTELLIGENT_REPORT_STATUS_STEPS.slice(1).forEach(({ delay, message }) => {
+        const timer = window.setTimeout(
+          () => setIntelligentReportStatus(message),
+          delay
+        );
+        intelligentReportTimersRef.current.push(timer);
+      });
+
+      minimumDuration = new Promise<void>((resolve) => {
+        const finishMinimumDuration = () => {
+          intelligentReportMinimumTimerRef.current = null;
+          intelligentReportMinimumResolveRef.current = null;
+          resolve();
+        };
+        intelligentReportMinimumResolveRef.current = finishMinimumDuration;
+        intelligentReportMinimumTimerRef.current = window.setTimeout(
+          finishMinimumDuration,
+          INTELLIGENT_REPORT_MINIMUM_DURATION_MS
+        );
+      });
+    } else {
+      setIsDownloadingIntelligentReport(true);
+    }
     const abortController = new AbortController();
     intelligentReportAbortRef.current = abortController;
 
@@ -282,7 +371,7 @@ const TableForm: React.FC = () => {
         }
       );
 
-      await minimumDuration;
+      if (minimumDuration) await minimumDuration;
       if (!isMountedRef.current) return;
 
       const contentDisposition = response.headers["content-disposition"];
@@ -313,6 +402,7 @@ const TableForm: React.FC = () => {
         URL.revokeObjectURL(downloadUrl);
         intelligentReportDownloadUrlRef.current = null;
       }
+      setIntelligentReportPersistenceStatus("ready");
     } catch (error) {
       if (!isMountedRef.current) return;
       const status = axios.isAxiosError(error)
@@ -328,11 +418,15 @@ const TableForm: React.FC = () => {
       } else {
         setError("Erro ao gerar o Relatório Inteligente.");
       }
+      setIntelligentReportStatusRefresh((current) => current + 1);
     } finally {
       clearIntelligentReportTimers();
       intelligentReportAbortRef.current = null;
       intelligentReportInProgressRef.current = false;
-      if (isMountedRef.current) setIsGeneratingIntelligentReport(false);
+      if (isMountedRef.current) {
+        setIsGeneratingIntelligentReport(false);
+        setIsDownloadingIntelligentReport(false);
+      }
     }
   };
 
@@ -351,16 +445,25 @@ const TableForm: React.FC = () => {
         onClick={handleExportExcel}
         disabled={isExporting}
       >
-        {isExporting ? "Exportando..." : "Exportar Excel"}
+        {isExporting ? "Exportando..." : "Exportar Planilha"}
       </Button>
       <Button
         type="button"
         onClick={handleGenerateIntelligentReport}
-        disabled={isGeneratingIntelligentReport}
+        disabled={
+          isGeneratingIntelligentReport ||
+          isDownloadingIntelligentReport ||
+          isLoadingIntelligentReportStatus ||
+          intelligentReportPersistenceStatus === "processing"
+        }
       >
         {isGeneratingIntelligentReport
-          ? "Gerando relatório..."
-          : "Relatório Inteligente"}
+          ? "Gerando Relatório IA..."
+          : intelligentReportPersistenceStatus === "processing"
+            ? "Gerando Relatório IA..."
+            : intelligentReportPersistenceStatus === "ready"
+              ? "Baixar Relatório IA"
+              : "Gerar Relatório IA"}
       </Button>
       <Button type="submit">Voltar</Button>
 
