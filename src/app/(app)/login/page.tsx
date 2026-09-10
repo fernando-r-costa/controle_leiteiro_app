@@ -50,6 +50,7 @@ const LoginForm: React.FC = () => {
       const { token, farmerId } = response.data;
       localStorage.setItem("authToken", token);
       localStorage.setItem("farmerId", String(farmerId));
+      sessionStorage.setItem("showTrialSummaryAfterLogin", "true");
       setError("");
       router.push(`/fazenda`);
     } catch (error: any) {

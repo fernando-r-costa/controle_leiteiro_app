@@ -49,6 +49,17 @@ type IntelligentReportPersistenceStatus =
   | "failed"
   | "ready";
 
+type ReportAccessStatus =
+  | "owned"
+  | "available"
+  | "quota_used"
+  | "trial_expired";
+
+interface ReportAccessStatuses {
+  spreadsheet: ReportAccessStatus;
+  aiReport: ReportAccessStatus;
+}
+
 const INTELLIGENT_REPORT_PERSISTENCE_STATUSES: IntelligentReportPersistenceStatus[] = [
   "not_generated",
   "processing",
@@ -62,6 +73,50 @@ function isIntelligentReportPersistenceStatus(
   return INTELLIGENT_REPORT_PERSISTENCE_STATUSES.includes(
     value as IntelligentReportPersistenceStatus
   );
+}
+
+const REPORT_ACCESS_STATUSES: ReportAccessStatus[] = [
+  "owned",
+  "available",
+  "quota_used",
+  "trial_expired",
+];
+
+function isReportAccessStatus(value: unknown): value is ReportAccessStatus {
+  return REPORT_ACCESS_STATUSES.includes(value as ReportAccessStatus);
+}
+
+function isReportAccessStatuses(value: unknown): value is ReportAccessStatuses {
+  if (typeof value !== "object" || value === null) return false;
+  const statuses = value as Record<string, unknown>;
+  return (
+    isReportAccessStatus(statuses.spreadsheet) &&
+    isReportAccessStatus(statuses.aiReport)
+  );
+}
+
+async function getTrialErrorCode(error: unknown): Promise<string | undefined> {
+  if (!axios.isAxiosError(error)) return undefined;
+
+  const data: unknown = error.response?.data;
+  if (data instanceof Blob) {
+    try {
+      const parsed: unknown = JSON.parse(await data.text());
+      if (typeof parsed === "object" && parsed !== null && "code" in parsed) {
+        const code = (parsed as { code?: unknown }).code;
+        return typeof code === "string" ? code : undefined;
+      }
+    } catch {
+      return undefined;
+    }
+  }
+
+  if (typeof data === "object" && data !== null && "code" in data) {
+    const code = (data as { code?: unknown }).code;
+    return typeof code === "string" ? code : undefined;
+  }
+
+  return undefined;
 }
 
 const INTELLIGENT_REPORT_MINIMUM_DURATION_MS = 20000;
@@ -119,6 +174,10 @@ const TableForm: React.FC = () => {
     useState(true);
   const [intelligentReportStatusRefresh, setIntelligentReportStatusRefresh] =
     useState(0);
+  const [reportAccessStatuses, setReportAccessStatuses] =
+    useState<Partial<ReportAccessStatuses>>({});
+  const [isLoadingReportAccessStatuses, setIsLoadingReportAccessStatuses] =
+    useState(true);
   const [intelligentReportStatus, setIntelligentReportStatus] = useState<string>(
     INTELLIGENT_REPORT_STATUS_STEPS[0].message
   );
@@ -127,6 +186,7 @@ const TableForm: React.FC = () => {
   const intelligentReportMinimumResolveRef = useRef<(() => void) | null>(null);
   const intelligentReportAbortRef = useRef<AbortController | null>(null);
   const intelligentReportStatusAbortRef = useRef<AbortController | null>(null);
+  const reportAccessStatusAbortRef = useRef<AbortController | null>(null);
   const intelligentReportDownloadUrlRef = useRef<string | null>(null);
   const intelligentReportInProgressRef = useRef(false);
   const isMountedRef = useRef(true);
@@ -152,6 +212,7 @@ const TableForm: React.FC = () => {
       clearIntelligentReportTimers();
       intelligentReportAbortRef.current?.abort();
       intelligentReportStatusAbortRef.current?.abort();
+      reportAccessStatusAbortRef.current?.abort();
       if (intelligentReportDownloadUrlRef.current) {
         URL.revokeObjectURL(intelligentReportDownloadUrlRef.current);
         intelligentReportDownloadUrlRef.current = null;
@@ -206,6 +267,52 @@ const TableForm: React.FC = () => {
 
     return () => abortController.abort();
   }, [farmerId, farmId, controlDate, token, intelligentReportStatusRefresh]);
+
+  useEffect(() => {
+    reportAccessStatusAbortRef.current?.abort();
+    setReportAccessStatuses({});
+
+    if (!farmerId || !farmId || !controlDate || !token) {
+      setIsLoadingReportAccessStatuses(false);
+      return;
+    }
+
+    const abortController = new AbortController();
+    reportAccessStatusAbortRef.current = abortController;
+    setIsLoadingReportAccessStatuses(true);
+
+    const loadReportAccessStatuses = async () => {
+      try {
+        const response = await axios.get<ReportAccessStatuses>(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}report/farmer/${farmerId}/farm/${farmId}/date/${controlDate}/access-status`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            signal: abortController.signal,
+          }
+        );
+
+        if (
+          !abortController.signal.aborted &&
+          isReportAccessStatuses(response.data)
+        ) {
+          setReportAccessStatuses(response.data);
+        }
+      } catch (statusError) {
+        if (!axios.isCancel(statusError) && !abortController.signal.aborted) {
+          setReportAccessStatuses({});
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setIsLoadingReportAccessStatuses(false);
+          reportAccessStatusAbortRef.current = null;
+        }
+      }
+    };
+
+    void loadReportAccessStatuses();
+
+    return () => abortController.abort();
+  }, [farmerId, farmId, controlDate, token]);
 
   const apiDairyControlUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}dairy-control`;
   const {
@@ -307,7 +414,23 @@ const TableForm: React.FC = () => {
       link.click();
       link.remove();
       URL.revokeObjectURL(downloadUrl);
-    } catch {
+      setReportAccessStatuses((current) => ({
+        ...current,
+        spreadsheet: "owned",
+      }));
+    } catch (error) {
+      const code = await getTrialErrorCode(error);
+      if (code === "CL_TRIAL_QUOTA_USED") {
+        setReportAccessStatuses((current) => ({
+          ...current,
+          spreadsheet: "quota_used",
+        }));
+      } else if (code === "CL_TRIAL_EXPIRED") {
+        setReportAccessStatuses((current) => ({
+          ...current,
+          spreadsheet: "trial_expired",
+        }));
+      }
       setError("Erro ao exportar o relatório.");
     } finally {
       setIsExporting(false);
@@ -403,11 +526,28 @@ const TableForm: React.FC = () => {
         intelligentReportDownloadUrlRef.current = null;
       }
       setIntelligentReportPersistenceStatus("ready");
+      setReportAccessStatuses((current) => ({
+        ...current,
+        aiReport: "owned",
+      }));
     } catch (error) {
       if (!isMountedRef.current) return;
       const status = axios.isAxiosError(error)
         ? error.response?.status
         : undefined;
+      const code = await getTrialErrorCode(error);
+
+      if (code === "CL_TRIAL_QUOTA_USED") {
+        setReportAccessStatuses((current) => ({
+          ...current,
+          aiReport: "quota_used",
+        }));
+      } else if (code === "CL_TRIAL_EXPIRED") {
+        setReportAccessStatuses((current) => ({
+          ...current,
+          aiReport: "trial_expired",
+        }));
+      }
 
       if (status === 503) {
         setError("O Relatório Inteligente está temporariamente indisponível.");
@@ -430,6 +570,37 @@ const TableForm: React.FC = () => {
     }
   };
 
+  const spreadsheetAccessStatus = reportAccessStatuses.spreadsheet;
+  const aiReportAccessStatus = reportAccessStatuses.aiReport;
+  const spreadsheetBlocked =
+    spreadsheetAccessStatus === "quota_used" ||
+    spreadsheetAccessStatus === "trial_expired";
+  const aiReportBlocked =
+    aiReportAccessStatus === "quota_used" ||
+    aiReportAccessStatus === "trial_expired";
+  const spreadsheetButtonLabel = isExporting
+    ? "Exportando..."
+    : spreadsheetAccessStatus === "owned"
+      ? "Baixar Planilha"
+      : spreadsheetAccessStatus === "quota_used"
+        ? "Limite mensal utilizado"
+        : spreadsheetAccessStatus === "trial_expired"
+          ? "Período gratuito encerrado"
+          : "Exportar Planilha";
+  const intelligentReportButtonLabel = isGeneratingIntelligentReport
+    ? "Gerando Relatório IA..."
+    : aiReportAccessStatus === "quota_used"
+      ? "Limite mensal utilizado"
+      : aiReportAccessStatus === "trial_expired"
+        ? "Período gratuito encerrado"
+        : aiReportAccessStatus === "owned" &&
+            intelligentReportPersistenceStatus === "processing"
+          ? "Gerando Relatório IA..."
+          : aiReportAccessStatus === "owned" &&
+              intelligentReportPersistenceStatus === "ready"
+            ? "Baixar Relatório IA"
+            : "Gerar Relatório IA";
+
   return (
     <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
       {dairyControlList && dairyControlList.length > 0 ? (
@@ -443,9 +614,14 @@ const TableForm: React.FC = () => {
       <Button
         type="button"
         onClick={handleExportExcel}
-        disabled={isExporting}
+        disabled={
+          isExporting ||
+          isLoadingReportAccessStatuses ||
+          !spreadsheetAccessStatus ||
+          spreadsheetBlocked
+        }
       >
-        {isExporting ? "Exportando..." : "Exportar Planilha"}
+        {spreadsheetButtonLabel}
       </Button>
       <Button
         type="button"
@@ -454,16 +630,13 @@ const TableForm: React.FC = () => {
           isGeneratingIntelligentReport ||
           isDownloadingIntelligentReport ||
           isLoadingIntelligentReportStatus ||
+          isLoadingReportAccessStatuses ||
+          !aiReportAccessStatus ||
+          aiReportBlocked ||
           intelligentReportPersistenceStatus === "processing"
         }
       >
-        {isGeneratingIntelligentReport
-          ? "Gerando Relatório IA..."
-          : intelligentReportPersistenceStatus === "processing"
-            ? "Gerando Relatório IA..."
-            : intelligentReportPersistenceStatus === "ready"
-              ? "Baixar Relatório IA"
-              : "Gerar Relatório IA"}
+        {intelligentReportButtonLabel}
       </Button>
       <Button type="submit">Voltar</Button>
 
