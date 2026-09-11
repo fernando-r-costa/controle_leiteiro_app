@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
@@ -58,6 +59,46 @@ type ReportAccessStatus =
 interface ReportAccessStatuses {
   spreadsheet: ReportAccessStatus;
   aiReport: ReportAccessStatus;
+}
+
+type ReportPaymentProduct = "spreadsheet" | "ai_report";
+type PaymentConfirmationStatus =
+  | "pending"
+  | "expired"
+  | "canceled"
+  | "failed";
+
+interface ReportPaymentResponse {
+  status: "payment_required" | "already_owned";
+  payment: {
+    reportPaymentId: number;
+    amountCents: number;
+    expiresAt: string | null;
+  } | null;
+  pix: {
+    code: string | null;
+    qrCodeBase64: string | null;
+  } | null;
+  reused: boolean;
+}
+
+interface PaymentModalData {
+  reportPaymentId: number;
+  product: ReportPaymentProduct;
+  amountCents: number;
+  expiresAt: string | null;
+  pixCode: string;
+  qrCodeBase64: string | null;
+  confirmationStatus: PaymentConfirmationStatus;
+  confirmationError: boolean;
+}
+
+interface PaymentConfirmationResponse {
+  status: "paid" | PaymentConfirmationStatus;
+  reportPaymentId: number;
+  reportAccessId: number | null;
+  providerStatus: string | null;
+  providerStatusDetail: string | null;
 }
 
 const INTELLIGENT_REPORT_PERSISTENCE_STATUSES: IntelligentReportPersistenceStatus[] = [
@@ -178,6 +219,9 @@ const TableForm: React.FC = () => {
     useState<Partial<ReportAccessStatuses>>({});
   const [isLoadingReportAccessStatuses, setIsLoadingReportAccessStatuses] =
     useState(true);
+  const [reportAccessStatusRefresh, setReportAccessStatusRefresh] = useState(0);
+  const [paymentModal, setPaymentModal] = useState<PaymentModalData | null>(null);
+  const [isCreatingPayment, setIsCreatingPayment] = useState(false);
   const [intelligentReportStatus, setIntelligentReportStatus] = useState<string>(
     INTELLIGENT_REPORT_STATUS_STEPS[0].message
   );
@@ -189,6 +233,13 @@ const TableForm: React.FC = () => {
   const reportAccessStatusAbortRef = useRef<AbortController | null>(null);
   const intelligentReportDownloadUrlRef = useRef<string | null>(null);
   const intelligentReportInProgressRef = useRef(false);
+  const paymentInProgressRef = useRef(false);
+  const paymentConfirmationTimerRef = useRef<number | null>(null);
+  const paymentConfirmationAbortRef = useRef<AbortController | null>(null);
+  const handledPaidPaymentIdRef = useRef<number | null>(null);
+  const resumePaidActionRef = useRef<
+    (product: ReportPaymentProduct) => Promise<void>
+  >(async () => {});
   const isMountedRef = useRef(true);
 
   const clearIntelligentReportTimers = () => {
@@ -218,6 +269,13 @@ const TableForm: React.FC = () => {
         intelligentReportDownloadUrlRef.current = null;
       }
       intelligentReportInProgressRef.current = false;
+      paymentInProgressRef.current = false;
+      if (paymentConfirmationTimerRef.current !== null) {
+        window.clearTimeout(paymentConfirmationTimerRef.current);
+        paymentConfirmationTimerRef.current = null;
+      }
+      paymentConfirmationAbortRef.current?.abort();
+      paymentConfirmationAbortRef.current = null;
     };
   }, []);
 
@@ -312,7 +370,7 @@ const TableForm: React.FC = () => {
     void loadReportAccessStatuses();
 
     return () => abortController.abort();
-  }, [farmerId, farmId, controlDate, token]);
+  }, [farmerId, farmId, controlDate, token, reportAccessStatusRefresh]);
 
   const apiDairyControlUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}dairy-control`;
   const {
@@ -570,36 +628,266 @@ const TableForm: React.FC = () => {
     }
   };
 
+  const createOrReusePayment = async (product: ReportPaymentProduct) => {
+    if (paymentInProgressRef.current) return;
+
+    if (!farmerId || !farmId || !controlDate || !token) {
+      setError("Dados necessários para gerar o Pix não estão disponíveis.");
+      return;
+    }
+
+    setError("");
+    paymentInProgressRef.current = true;
+    setIsCreatingPayment(true);
+
+    try {
+      const response = await axios.post<ReportPaymentResponse>(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}report/farmer/${farmerId}/farm/${farmId}/date/${controlDate}/payment/${product}`,
+        undefined,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.status === "already_owned") {
+        setPaymentModal(null);
+        setReportAccessStatuses((current) => ({
+          ...current,
+          [product === "spreadsheet" ? "spreadsheet" : "aiReport"]: "owned",
+        }));
+        setReportAccessStatusRefresh((current) => current + 1);
+
+        if (product === "spreadsheet") {
+          await handleExportExcel();
+        } else {
+          await handleGenerateIntelligentReport();
+        }
+        return;
+      }
+
+      const { payment, pix } = response.data;
+      if (
+        !payment ||
+        !Number.isInteger(payment.reportPaymentId) ||
+        payment.reportPaymentId <= 0 ||
+        !Number.isInteger(payment.amountCents) ||
+        payment.amountCents <= 0 ||
+        !pix?.code
+      ) {
+        throw new Error("Resposta de pagamento inválida");
+      }
+
+      handledPaidPaymentIdRef.current = null;
+      setPaymentModal({
+        reportPaymentId: payment.reportPaymentId,
+        product,
+        amountCents: payment.amountCents,
+        expiresAt: payment.expiresAt,
+        pixCode: pix.code,
+        qrCodeBase64: pix.qrCodeBase64,
+        confirmationStatus: "pending",
+        confirmationError: false,
+      });
+    } catch {
+      if (isMountedRef.current) {
+        setError("Não foi possível gerar o Pix. Tente novamente.");
+      }
+    } finally {
+      paymentInProgressRef.current = false;
+      if (isMountedRef.current) setIsCreatingPayment(false);
+    }
+  };
+
+  const handleSpreadsheetAction = async () => {
+    if (
+      reportAccessStatuses.spreadsheet === "quota_used" ||
+      reportAccessStatuses.spreadsheet === "trial_expired"
+    ) {
+      await createOrReusePayment("spreadsheet");
+      return;
+    }
+
+    await handleExportExcel();
+  };
+
+  const handleIntelligentReportAction = async () => {
+    if (
+      reportAccessStatuses.aiReport === "quota_used" ||
+      reportAccessStatuses.aiReport === "trial_expired"
+    ) {
+      await createOrReusePayment("ai_report");
+      return;
+    }
+
+    await handleGenerateIntelligentReport();
+  };
+
+  const handleCopyPixCode = async () => {
+    if (!paymentModal?.pixCode) return;
+
+    try {
+      await navigator.clipboard.writeText(paymentModal.pixCode);
+    } catch {
+      setError("Não foi possível copiar o código Pix.");
+    }
+  };
+
+  const handleClosePaymentModal = () => {
+    if (paymentConfirmationTimerRef.current !== null) {
+      window.clearTimeout(paymentConfirmationTimerRef.current);
+      paymentConfirmationTimerRef.current = null;
+    }
+    paymentConfirmationAbortRef.current?.abort();
+    paymentConfirmationAbortRef.current = null;
+    setPaymentModal(null);
+  };
+
+  resumePaidActionRef.current = async (product) => {
+    if (product === "spreadsheet") {
+      await handleExportExcel();
+    } else {
+      await handleGenerateIntelligentReport();
+    }
+  };
+
+  const activePaymentId = paymentModal?.reportPaymentId;
+  const activePaymentProduct = paymentModal?.product;
+  const activePaymentStatus = paymentModal?.confirmationStatus;
+
+  useEffect(() => {
+    if (
+      !activePaymentId ||
+      !activePaymentProduct ||
+      activePaymentStatus !== "pending" ||
+      !token
+    ) return;
+
+    let active = true;
+
+    const scheduleNextConfirmation = (callback: () => void) => {
+      if (!active) return;
+      paymentConfirmationTimerRef.current = window.setTimeout(callback, 5000);
+    };
+
+    const confirmCurrentPayment = async () => {
+      if (!active) return;
+
+      const abortController = new AbortController();
+      paymentConfirmationAbortRef.current = abortController;
+      let shouldContinuePolling = false;
+
+      try {
+        const response = await axios.post<PaymentConfirmationResponse>(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}report/payment/${activePaymentId}/confirm`,
+          undefined,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            signal: abortController.signal,
+          }
+        );
+
+        if (!active) return;
+        if (response.data.reportPaymentId !== activePaymentId) {
+          throw new Error("Confirmação de pagamento inválida");
+        }
+
+        if (response.data.status === "pending") {
+          setPaymentModal((current) =>
+            current?.reportPaymentId === activePaymentId
+              ? { ...current, confirmationError: false }
+              : current
+          );
+          shouldContinuePolling = true;
+        } else if (response.data.status === "paid") {
+          if (handledPaidPaymentIdRef.current === activePaymentId) return;
+          handledPaidPaymentIdRef.current = activePaymentId;
+          setPaymentModal(null);
+          setReportAccessStatuses((current) => ({
+            ...current,
+            [activePaymentProduct === "spreadsheet"
+              ? "spreadsheet"
+              : "aiReport"]: "owned",
+          }));
+          setReportAccessStatusRefresh((current) => current + 1);
+          await resumePaidActionRef.current(activePaymentProduct);
+        } else {
+          setPaymentModal((current) =>
+            current?.reportPaymentId === activePaymentId
+              ? {
+                  ...current,
+                  confirmationStatus: response.data.status,
+                  confirmationError: false,
+                }
+              : current
+          );
+        }
+      } catch (confirmationError) {
+        if (!active || axios.isCancel(confirmationError)) return;
+
+        setPaymentModal((current) =>
+          current?.reportPaymentId === activePaymentId
+            ? { ...current, confirmationError: true }
+            : current
+        );
+        shouldContinuePolling = true;
+      } finally {
+        if (paymentConfirmationAbortRef.current === abortController) {
+          paymentConfirmationAbortRef.current = null;
+        }
+        if (shouldContinuePolling) {
+          scheduleNextConfirmation(confirmCurrentPayment);
+        }
+      }
+    };
+
+    scheduleNextConfirmation(confirmCurrentPayment);
+
+    return () => {
+      active = false;
+      if (paymentConfirmationTimerRef.current !== null) {
+        window.clearTimeout(paymentConfirmationTimerRef.current);
+        paymentConfirmationTimerRef.current = null;
+      }
+      paymentConfirmationAbortRef.current?.abort();
+      paymentConfirmationAbortRef.current = null;
+    };
+  }, [activePaymentId, activePaymentProduct, activePaymentStatus, token]);
+
   const spreadsheetAccessStatus = reportAccessStatuses.spreadsheet;
   const aiReportAccessStatus = reportAccessStatuses.aiReport;
-  const spreadsheetBlocked =
-    spreadsheetAccessStatus === "quota_used" ||
-    spreadsheetAccessStatus === "trial_expired";
-  const aiReportBlocked =
-    aiReportAccessStatus === "quota_used" ||
-    aiReportAccessStatus === "trial_expired";
   const spreadsheetButtonLabel = isExporting
     ? "Exportando..."
     : spreadsheetAccessStatus === "owned"
       ? "Baixar Planilha"
-      : spreadsheetAccessStatus === "quota_used"
-        ? "Limite mensal utilizado"
-        : spreadsheetAccessStatus === "trial_expired"
-          ? "Período gratuito encerrado"
-          : "Exportar Planilha";
+      : "Exportar Planilha";
   const intelligentReportButtonLabel = isGeneratingIntelligentReport
     ? "Gerando Relatório IA..."
-    : aiReportAccessStatus === "quota_used"
-      ? "Limite mensal utilizado"
-      : aiReportAccessStatus === "trial_expired"
-        ? "Período gratuito encerrado"
-        : aiReportAccessStatus === "owned" &&
-            intelligentReportPersistenceStatus === "processing"
-          ? "Gerando Relatório IA..."
-          : aiReportAccessStatus === "owned" &&
-              intelligentReportPersistenceStatus === "ready"
-            ? "Baixar Relatório IA"
-            : "Gerar Relatório IA";
+    : aiReportAccessStatus === "owned" &&
+        intelligentReportPersistenceStatus === "processing"
+      ? "Gerando Relatório IA..."
+      : aiReportAccessStatus === "owned" &&
+          intelligentReportPersistenceStatus === "ready"
+        ? "Baixar Relatório IA"
+        : "Gerar Relatório IA";
+  const paymentQrCodeSrc = paymentModal?.qrCodeBase64
+    ? paymentModal.qrCodeBase64.startsWith("data:")
+      ? paymentModal.qrCodeBase64
+      : `data:image/png;base64,${paymentModal.qrCodeBase64}`
+    : null;
+  const paymentExpirationDate = paymentModal?.expiresAt
+    ? new Date(paymentModal.expiresAt)
+    : null;
+  const formattedPaymentExpiration =
+    paymentExpirationDate && !Number.isNaN(paymentExpirationDate.getTime())
+      ? paymentExpirationDate.toLocaleString("pt-BR")
+      : null;
+  const paymentConfirmationMessage = paymentModal?.confirmationStatus === "expired"
+    ? "Este Pix expirou. Feche esta janela e tente novamente para gerar um novo Pix."
+    : paymentModal?.confirmationStatus === "canceled"
+      ? "Este pagamento foi cancelado. Feche esta janela e tente novamente."
+      : paymentModal?.confirmationStatus === "failed"
+        ? "Não foi possível concluir este pagamento. Feche esta janela e tente novamente."
+        : paymentModal?.confirmationError
+          ? "Não foi possível verificar o pagamento agora. Tentaremos novamente."
+          : "Aguardando confirmação do pagamento...";
 
   return (
     <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
@@ -613,26 +901,26 @@ const TableForm: React.FC = () => {
 
       <Button
         type="button"
-        onClick={handleExportExcel}
+        onClick={handleSpreadsheetAction}
         disabled={
           isExporting ||
+          isCreatingPayment ||
           isLoadingReportAccessStatuses ||
-          !spreadsheetAccessStatus ||
-          spreadsheetBlocked
+          !spreadsheetAccessStatus
         }
       >
         {spreadsheetButtonLabel}
       </Button>
       <Button
         type="button"
-        onClick={handleGenerateIntelligentReport}
+        onClick={handleIntelligentReportAction}
         disabled={
           isGeneratingIntelligentReport ||
           isDownloadingIntelligentReport ||
+          isCreatingPayment ||
           isLoadingIntelligentReportStatus ||
           isLoadingReportAccessStatuses ||
           !aiReportAccessStatus ||
-          aiReportBlocked ||
           intelligentReportPersistenceStatus === "processing"
         }
       >
@@ -664,6 +952,72 @@ const TableForm: React.FC = () => {
             <p className="mt-2 text-sm text-primary-color">
               Isso pode levar alguns segundos.
             </p>
+          </div>
+        </div>
+      )}
+
+      {paymentModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-dark-color/60 px-4 py-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="payment-modal-title"
+        >
+          <div className="w-full max-w-md rounded-lg bg-light-color p-6 text-dark-color shadow-lg">
+            <h2 id="payment-modal-title" className="mb-4 text-xl font-semibold">
+              {paymentModal.product === "spreadsheet"
+                ? "Pagamento da Planilha"
+                : "Pagamento do Relatório IA"}
+            </h2>
+
+            <p className="mb-4 text-lg font-medium">
+              Valor: {new Intl.NumberFormat("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              }).format(paymentModal.amountCents / 100)}
+            </p>
+
+            {paymentQrCodeSrc && (
+              <Image
+                src={paymentQrCodeSrc}
+                alt="QR Code Pix"
+                width={240}
+                height={240}
+                unoptimized
+                className="mx-auto mb-4 h-auto w-full max-w-60"
+              />
+            )}
+
+            <label htmlFor="pix-copy-code" className="mb-2 block text-sm font-medium">
+              Código Pix copia e cola
+            </label>
+            <textarea
+              id="pix-copy-code"
+              value={paymentModal.pixCode}
+              readOnly
+              rows={4}
+              className="mb-3 w-full resize-none break-all rounded-md border border-primary-color/30 bg-white p-3 text-sm text-dark-color"
+            />
+
+            <Button type="button" onClick={handleCopyPixCode}>
+              Copiar código Pix
+            </Button>
+
+            {formattedPaymentExpiration && (
+              <p className="mt-4 text-sm text-primary-color">
+                Vencimento: {formattedPaymentExpiration}
+              </p>
+            )}
+
+            <p className="mt-4 text-sm text-primary-color" aria-live="polite">
+              {paymentConfirmationMessage}
+            </p>
+
+            <div className="mt-5">
+              <Button type="button" onClick={handleClosePaymentModal}>
+                Fechar
+              </Button>
+            </div>
           </div>
         </div>
       )}
