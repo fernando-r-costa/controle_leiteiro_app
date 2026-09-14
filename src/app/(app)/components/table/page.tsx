@@ -165,7 +165,7 @@ const Table: React.FC<TableProps> = ({ data, title }) => {
                     key={column.key}
                     className="border border-primary-color px-4 py-2 text-center"
                   >
-                    {formatNumber(row[column.key as keyof TableRowData] || "")}
+                    {formatNumber(row[column.key as keyof TableRowData] ?? "")}
                   </td>
                 ))}
               </tr>

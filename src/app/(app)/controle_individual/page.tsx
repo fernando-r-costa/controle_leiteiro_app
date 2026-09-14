@@ -260,17 +260,17 @@ const IndividualProductionForm: React.FC = () => {
     }
   }, [isLoading, animalList, dairyControlRecords]);
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent): Promise<boolean> => {
     e.preventDefault();
 
     if (!cowNumber) {
       setError("Por favor, insira um número para identificação");
-      return;
+      return false;
     }
 
     if (!weightMilking1) {
       setError("Por favor, insira uma pesagem.");
-      return;
+      return false;
     }
 
     setError("");
@@ -281,7 +281,7 @@ const IndividualProductionForm: React.FC = () => {
       if (!animalData) {
         setError("Animal não encontrado");
         setIsLoading(false);
-        return;
+        return false;
       }
 
       const dairyControlRegister = {
@@ -332,9 +332,12 @@ const IndividualProductionForm: React.FC = () => {
       setError(
         error.response?.data?.error || "Erro ao salvar controle de leite!"
       );
+      setIsLoading(false);
+      return false;
     }
 
     setIsLoading(false);
+    return true;
   };
 
   const handleSelectChange = (
@@ -408,7 +411,8 @@ const IndividualProductionForm: React.FC = () => {
   const finishProductionControl = async () => {
     if (cowNumber !== "" && weightMilking1 !== "") {
       try {
-        await handleFormSubmit(new Event("submit") as any);
+        const wasSaved = await handleFormSubmit(new Event("submit") as any);
+        if (!wasSaved) return;
       } catch (error) {
         return;
       }
