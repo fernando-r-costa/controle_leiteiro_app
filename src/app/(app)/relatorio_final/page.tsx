@@ -64,6 +64,7 @@ interface ReportAccessStatuses {
 type ReportPaymentProduct = "spreadsheet" | "ai_report";
 type PaymentConfirmationStatus =
   | "pending"
+  | "paid"
   | "expired"
   | "canceled"
   | "failed";
