@@ -267,6 +267,7 @@ const IndividualProductionForm: React.FC = () => {
   const handleFormSubmit = async (e: React.FormEvent): Promise<boolean> => {
     e.preventDefault();
     if (isLoading) return false;
+    if (!token || !farmerId || !farmId || !controlDate) return false;
 
     if (!cowNumber) {
       setError("Por favor, insira um número para identificação");
@@ -353,7 +354,9 @@ const IndividualProductionForm: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    if (!registerId || !farmerId || !farmId || !animalId) {
+    if (!token || !farmerId || !farmId || !controlDate) return;
+
+    if (!registerId || !animalId) {
       setError("Informações necessárias para excluir não estão disponíveis.");
       return;
     }
@@ -415,6 +418,7 @@ const IndividualProductionForm: React.FC = () => {
 
   const finishProductionControl = async () => {
     if (isLoading) return;
+    if (!token || !farmerId || !farmId || !controlDate) return;
 
     if (cowNumber !== "" && weightMilking1 !== "") {
       try {
