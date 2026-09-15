@@ -294,8 +294,13 @@ const TableForm: React.FC = () => {
     const abortController = new AbortController();
     intelligentReportStatusAbortRef.current = abortController;
     setIsLoadingIntelligentReportStatus(true);
+    let active = true;
+    let statusPollingTimer: number | null = null;
+    let isPollingProcessingStatus = false;
 
     const loadIntelligentReportStatus = async () => {
+      let shouldScheduleNextCheck = false;
+
       try {
         const response = await authenticatedApi.get<{
           status: IntelligentReportPersistenceStatus;
@@ -308,27 +313,58 @@ const TableForm: React.FC = () => {
         );
         const status = response.data?.status;
 
-        if (
-          !abortController.signal.aborted &&
-          isIntelligentReportPersistenceStatus(status)
-        ) {
+        if (!active || abortController.signal.aborted) return;
+
+        if (isIntelligentReportPersistenceStatus(status)) {
           setIntelligentReportPersistenceStatus(status);
+          isPollingProcessingStatus = status === "processing";
+          shouldScheduleNextCheck = isPollingProcessingStatus;
+        } else if (isPollingProcessingStatus) {
+          shouldScheduleNextCheck = true;
         }
       } catch (statusError) {
-        if (!axios.isCancel(statusError) && !abortController.signal.aborted) {
-          setIntelligentReportPersistenceStatus("not_generated");
+        if (
+          active &&
+          !axios.isCancel(statusError) &&
+          !abortController.signal.aborted
+        ) {
+          if (isPollingProcessingStatus) {
+            shouldScheduleNextCheck = true;
+          } else {
+            setIntelligentReportPersistenceStatus("not_generated");
+          }
         }
       } finally {
-        if (!abortController.signal.aborted) {
+        if (active && !abortController.signal.aborted) {
           setIsLoadingIntelligentReportStatus(false);
-          intelligentReportStatusAbortRef.current = null;
+
+          if (shouldScheduleNextCheck) {
+            statusPollingTimer = window.setTimeout(() => {
+              statusPollingTimer = null;
+              void loadIntelligentReportStatus();
+            }, 5000);
+          } else if (
+            intelligentReportStatusAbortRef.current === abortController
+          ) {
+            intelligentReportStatusAbortRef.current = null;
+          }
         }
       }
     };
 
     void loadIntelligentReportStatus();
 
-    return () => abortController.abort();
+    return () => {
+      active = false;
+      if (statusPollingTimer !== null) {
+        window.clearTimeout(statusPollingTimer);
+        statusPollingTimer = null;
+      }
+      abortController.abort();
+      if (intelligentReportStatusAbortRef.current === abortController) {
+        intelligentReportStatusAbortRef.current = null;
+      }
+    };
   }, [farmerId, farmId, controlDate, token, intelligentReportStatusRefresh]);
 
   useEffect(() => {
