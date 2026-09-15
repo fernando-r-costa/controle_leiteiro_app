@@ -225,6 +225,8 @@ const TableForm: React.FC = () => {
   const [reportAccessStatusRefresh, setReportAccessStatusRefresh] = useState(0);
   const [paymentModal, setPaymentModal] = useState<PaymentModalData | null>(null);
   const [isCreatingPayment, setIsCreatingPayment] = useState(false);
+  const [isPaymentConfirmationPaused, setIsPaymentConfirmationPaused] =
+    useState(false);
   const [intelligentReportStatus, setIntelligentReportStatus] = useState<string>(
     INTELLIGENT_REPORT_STATUS_STEPS[0].message
   );
@@ -239,6 +241,7 @@ const TableForm: React.FC = () => {
   const paymentInProgressRef = useRef(false);
   const paymentConfirmationTimerRef = useRef<number | null>(null);
   const paymentConfirmationAbortRef = useRef<AbortController | null>(null);
+  const paymentConfirmationFailureCountRef = useRef(0);
   const handledPaidPaymentIdRef = useRef<number | null>(null);
   const resumePaidActionRef = useRef<
     (product: ReportPaymentProduct) => Promise<void>
@@ -723,6 +726,8 @@ const TableForm: React.FC = () => {
       }
 
       handledPaidPaymentIdRef.current = null;
+      paymentConfirmationFailureCountRef.current = 0;
+      setIsPaymentConfirmationPaused(false);
       setPaymentModal({
         reportPaymentId: payment.reportPaymentId,
         product,
@@ -794,7 +799,19 @@ const TableForm: React.FC = () => {
     }
     paymentConfirmationAbortRef.current?.abort();
     paymentConfirmationAbortRef.current = null;
+    paymentConfirmationFailureCountRef.current = 0;
+    setIsPaymentConfirmationPaused(false);
     setPaymentModal(null);
+  };
+
+  const handleRetryPaymentConfirmation = () => {
+    if (!paymentModal || paymentModal.confirmationStatus !== "pending") return;
+
+    paymentConfirmationFailureCountRef.current = 0;
+    setPaymentModal((current) =>
+      current ? { ...current, confirmationError: false } : current
+    );
+    setIsPaymentConfirmationPaused(false);
   };
 
   resumePaidActionRef.current = async (product) => {
@@ -814,6 +831,7 @@ const TableForm: React.FC = () => {
       !activePaymentId ||
       !activePaymentProduct ||
       activePaymentStatus !== "pending" ||
+      isPaymentConfirmationPaused ||
       !token
     ) return;
 
@@ -847,6 +865,8 @@ const TableForm: React.FC = () => {
           throw new Error("Confirmação de pagamento inválida");
         }
 
+        paymentConfirmationFailureCountRef.current = 0;
+
         if (response.data.status === "pending") {
           setPaymentModal((current) =>
             current?.reportPaymentId === activePaymentId
@@ -879,13 +899,25 @@ const TableForm: React.FC = () => {
         }
       } catch (confirmationError) {
         if (!active || axios.isCancel(confirmationError)) return;
+        if (
+          axios.isAxiosError(confirmationError) &&
+          confirmationError.response?.status === 401
+        ) return;
+
+        paymentConfirmationFailureCountRef.current += 1;
+        const reachedFailureLimit =
+          paymentConfirmationFailureCountRef.current >= 3;
 
         setPaymentModal((current) =>
           current?.reportPaymentId === activePaymentId
             ? { ...current, confirmationError: true }
             : current
         );
-        shouldContinuePolling = true;
+        if (reachedFailureLimit) {
+          setIsPaymentConfirmationPaused(true);
+        } else {
+          shouldContinuePolling = true;
+        }
       } finally {
         if (paymentConfirmationAbortRef.current === abortController) {
           paymentConfirmationAbortRef.current = null;
@@ -907,7 +939,13 @@ const TableForm: React.FC = () => {
       paymentConfirmationAbortRef.current?.abort();
       paymentConfirmationAbortRef.current = null;
     };
-  }, [activePaymentId, activePaymentProduct, activePaymentStatus, token]);
+  }, [
+    activePaymentId,
+    activePaymentProduct,
+    activePaymentStatus,
+    isPaymentConfirmationPaused,
+    token,
+  ]);
 
   const spreadsheetAccessStatus = reportAccessStatuses.spreadsheet;
   const aiReportAccessStatus = reportAccessStatuses.aiReport;
@@ -943,7 +981,9 @@ const TableForm: React.FC = () => {
       ? "Este pagamento foi cancelado. Feche esta janela e tente novamente."
       : paymentModal?.confirmationStatus === "failed"
         ? "Não foi possível concluir este pagamento. Feche esta janela e tente novamente."
-        : paymentModal?.confirmationError
+        : isPaymentConfirmationPaused
+          ? "Não foi possível verificar o pagamento no momento."
+          : paymentModal?.confirmationError
           ? "Não foi possível verificar o pagamento agora. Tentaremos novamente."
           : "Aguardando confirmação do pagamento...";
 
@@ -1088,6 +1128,17 @@ const TableForm: React.FC = () => {
             <p className="mt-4 text-sm text-primary-color" aria-live="polite">
               {paymentConfirmationMessage}
             </p>
+
+            {isPaymentConfirmationPaused &&
+              paymentModal.confirmationStatus === "pending" && (
+                <button
+                  type="button"
+                  onClick={handleRetryPaymentConfirmation}
+                  className="mt-3 text-primary-color underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-color"
+                >
+                  Tentar novamente
+                </button>
+              )}
 
             <div className="mt-5">
               <Button type="button" onClick={handleClosePaymentModal}>
