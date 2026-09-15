@@ -221,6 +221,7 @@ const TableForm: React.FC = () => {
     useState<Partial<ReportAccessStatuses>>({});
   const [isLoadingReportAccessStatuses, setIsLoadingReportAccessStatuses] =
     useState(true);
+  const [reportAccessStatusError, setReportAccessStatusError] = useState(false);
   const [reportAccessStatusRefresh, setReportAccessStatusRefresh] = useState(0);
   const [paymentModal, setPaymentModal] = useState<PaymentModalData | null>(null);
   const [isCreatingPayment, setIsCreatingPayment] = useState(false);
@@ -333,6 +334,7 @@ const TableForm: React.FC = () => {
   useEffect(() => {
     reportAccessStatusAbortRef.current?.abort();
     setReportAccessStatuses({});
+    setReportAccessStatusError(false);
 
     if (!farmerId || !farmId || !controlDate || !token) {
       setIsLoadingReportAccessStatuses(false);
@@ -353,15 +355,18 @@ const TableForm: React.FC = () => {
           }
         );
 
-        if (
-          !abortController.signal.aborted &&
-          isReportAccessStatuses(response.data)
-        ) {
-          setReportAccessStatuses(response.data);
+        if (abortController.signal.aborted) return;
+
+        if (!isReportAccessStatuses(response.data)) {
+          setReportAccessStatusError(true);
+          return;
         }
+
+        setReportAccessStatusError(false);
+        setReportAccessStatuses(response.data);
       } catch (statusError) {
         if (!axios.isCancel(statusError) && !abortController.signal.aborted) {
-          setReportAccessStatuses({});
+          setReportAccessStatusError(true);
         }
       } finally {
         if (!abortController.signal.aborted) {
@@ -703,6 +708,8 @@ const TableForm: React.FC = () => {
   };
 
   const handleSpreadsheetAction = async () => {
+    if (reportAccessStatusError || !reportAccessStatuses.spreadsheet) return;
+
     if (
       reportAccessStatuses.spreadsheet === "quota_used" ||
       reportAccessStatuses.spreadsheet === "trial_expired"
@@ -715,6 +722,8 @@ const TableForm: React.FC = () => {
   };
 
   const handleIntelligentReportAction = async () => {
+    if (reportAccessStatusError || !reportAccessStatuses.aiReport) return;
+
     if (
       reportAccessStatuses.aiReport === "quota_used" ||
       reportAccessStatuses.aiReport === "trial_expired"
@@ -724,6 +733,12 @@ const TableForm: React.FC = () => {
     }
 
     await handleGenerateIntelligentReport();
+  };
+
+  const handleRetryReportAccessStatus = () => {
+    setReportAccessStatusError(false);
+    setIsLoadingReportAccessStatuses(true);
+    setReportAccessStatusRefresh((current) => current + 1);
   };
 
   const handleCopyPixCode = async () => {
@@ -905,6 +920,24 @@ const TableForm: React.FC = () => {
       )}
 
       {error && <FormText type="error">{error}</FormText>}
+
+      {reportAccessStatusError && (
+        <div
+          className="mb-4 flex flex-col items-center gap-2 text-center"
+          role="alert"
+        >
+          <p className="text-highlight-color">
+            Não foi possível verificar o acesso aos relatórios.
+          </p>
+          <button
+            type="button"
+            onClick={handleRetryReportAccessStatus}
+            className="text-primary-color underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-color"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      )}
 
       <Button
         type="button"

@@ -144,7 +144,13 @@ const FarmForm: React.FC = () => {
       setShowMessage(true);
       setTimeout(async () => {
         if (typeof window !== "undefined") {
-          localStorage.clear();
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("farmerId");
+          localStorage.removeItem("farmId");
+          localStorage.removeItem("farmName");
+          localStorage.removeItem("controlDate");
+          localStorage.removeItem("newControl");
+          localStorage.removeItem("controlDateList");
           await mutate((key) => true, undefined, { revalidate: false });
         }
         window.location.href = '/login';
