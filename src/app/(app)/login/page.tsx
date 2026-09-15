@@ -22,6 +22,7 @@ const LoginForm: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -52,6 +53,7 @@ const LoginForm: React.FC = () => {
       localStorage.setItem("farmerId", String(farmerId));
       sessionStorage.setItem("showTrialSummaryAfterLogin", "true");
       setError("");
+      setIsLoading(false);
       router.push(`/fazenda`);
     } catch (error: any) {
       setIsLoading(false);
@@ -93,7 +95,7 @@ const LoginForm: React.FC = () => {
 
       {error && <FormText type="error">{error}</FormText>}
 
-      <Button type="submit">Entrar</Button>
+      <Button type="submit" disabled={isLoading}>Entrar</Button>
       <Button type="button" onClick={newFarmer}>
         Novo cadastro
       </Button>

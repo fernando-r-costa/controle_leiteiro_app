@@ -27,6 +27,7 @@ const FarmRegisterForm: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
 
     if (!farmName) {
       setError("Por favor, insira um nome para a Fazenda.");
@@ -47,6 +48,7 @@ const FarmRegisterForm: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
       });
+      setIsLoading(false);
       router.push(`/fazenda`);
     } catch (error: any) {
       setIsLoading(false);
@@ -77,7 +79,7 @@ const FarmRegisterForm: React.FC = () => {
 
       {error && <FormText type="error">{error}</FormText>}
 
-      <Button type="submit">Cadastrar</Button>
+      <Button type="submit" disabled={isLoading}>Cadastrar</Button>
       <Button type="button" onClick={goBack}>
         Voltar
       </Button>

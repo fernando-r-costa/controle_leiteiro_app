@@ -37,6 +37,7 @@ const NewCowForm: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
 
     if (!cowNumber) {
       setError("Por favor, insira um número para identificação.");
@@ -135,7 +136,7 @@ const NewCowForm: React.FC = () => {
 
       {error && <FormText type="error">{error}</FormText>}
 
-      <Button type="submit">Cadastrar novo animal</Button>
+      <Button type="submit" disabled={isLoading}>Cadastrar novo animal</Button>
       <Button type="button" onClick={goBack}>
         Voltar
       </Button>

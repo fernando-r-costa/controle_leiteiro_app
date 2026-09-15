@@ -126,6 +126,7 @@ const CowUpdateForm: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
 
     if (!calvingDate) {
       setError("Por favor, insira uma data de parto.");
@@ -151,13 +152,13 @@ const CowUpdateForm: React.FC = () => {
       await axios.put(apiAnimalUrl, animalData, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      await mutate(`${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`);
     } catch (error: any) {
       setError(error.response?.data?.error || "Os dados não foram salvos!");
       setIsLoading(false);
       return;
     }
-
-    await mutate(`${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`);
 
     const topElement = document.getElementById("top");
     topElement?.scrollIntoView({ behavior: "smooth" });
@@ -259,7 +260,7 @@ const CowUpdateForm: React.FC = () => {
 
       {error && <FormText type="error">{error}</FormText>}
 
-      <Button type="submit">Atualizar animal</Button>
+      <Button type="submit" disabled={isLoading}>Atualizar animal</Button>
       <Button type="button" onClick={deleteAnimal}>
         Excluir animal
       </Button>

@@ -41,6 +41,7 @@ const FarmerRegisterForm: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^(\+55)?\(\d{2}\)\s?\d{4,5}-\d{4}$/;
@@ -84,6 +85,7 @@ const FarmerRegisterForm: React.FC = () => {
         `${process.env.NEXT_PUBLIC_API_BASE_URL}farmer/register`,
         farmerData
       );
+      setIsLoading(false);
       router.push("/login");
     } catch (error: any) {
       setIsLoading(false);
@@ -145,7 +147,7 @@ const FarmerRegisterForm: React.FC = () => {
 
       {error && <FormText type="error">{error}</FormText>}
 
-      <Button type="submit">Cadastrar</Button>
+      <Button type="submit" disabled={isLoading}>Cadastrar</Button>
       <Button type="button" onClick={goBack}>
         Voltar
       </Button>

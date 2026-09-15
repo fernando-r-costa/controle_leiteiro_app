@@ -262,6 +262,7 @@ const IndividualProductionForm: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent): Promise<boolean> => {
     e.preventDefault();
+    if (isLoading) return false;
 
     if (!cowNumber) {
       setError("Por favor, insira um número para identificação");
@@ -409,6 +410,8 @@ const IndividualProductionForm: React.FC = () => {
   };
 
   const finishProductionControl = async () => {
+    if (isLoading) return;
+
     if (cowNumber !== "" && weightMilking1 !== "") {
       try {
         const wasSaved = await handleFormSubmit(new Event("submit") as any);
@@ -417,6 +420,8 @@ const IndividualProductionForm: React.FC = () => {
         return;
       }
     }
+
+    setIsLoading(true);
 
     try {
       const updatedRecords = await axios.get(
@@ -457,12 +462,13 @@ const IndividualProductionForm: React.FC = () => {
       const confirmFinish = window.confirm(mensagem);
 
       if (confirmFinish) {
-        setIsLoading(true);
         router.replace(`/controle_final`);
       }
     } catch (error) {
       setError("Erro ao verificar dados finais");
     }
+
+    setIsLoading(false);
   };
 
   const goBack = () => {
@@ -526,7 +532,7 @@ const IndividualProductionForm: React.FC = () => {
 
       {error && <FormText type="error">{error}</FormText>}
 
-      <Button type="submit">
+      <Button type="submit" disabled={isLoading}>
         {registerId ? "Atualizar Pesagem" : "Incluir Pesagem"}
       </Button>
       {registerId && (
@@ -534,7 +540,11 @@ const IndividualProductionForm: React.FC = () => {
           Excluir Pesagem
         </Button>
       )}
-      <Button type="button" onClick={finishProductionControl}>
+      <Button
+        type="button"
+        onClick={finishProductionControl}
+        disabled={isLoading}
+      >
         Finalizar Pesagem
       </Button>
       <Button type="button" onClick={goBack}>
