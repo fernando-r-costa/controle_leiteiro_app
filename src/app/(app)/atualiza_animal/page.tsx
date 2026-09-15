@@ -43,7 +43,6 @@ const CowUpdateForm: React.FC = () => {
   const [cowNumber, setNumber] = useState<string>("");
   const [cowName, setCowName] = useState<string>("");
   const [animalId, setAnimalId] = useState<number>();
-  console.log("🚀 ~ animalId:", animalId);
   const [calvingDate, setCalvingDate] = useState<string>("");
   const [expectedDate, setExpectedDate] = useState<string | null>(null);
   const [error, setError] = useState<string>("");
@@ -181,12 +180,7 @@ const CowUpdateForm: React.FC = () => {
     setIsLoading(true);
     setError("");
 
-    const delay = (ms: number) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
-
     try {
-      await delay(2000);
-
       const confirmDelete = window.confirm(
         `Tem certeza de que deseja excluir o animal: ${cowNumber} ${
           cowName || "Sem nome"

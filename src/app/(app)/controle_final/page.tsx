@@ -12,7 +12,7 @@ const EndForm: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 5000);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -21,13 +21,11 @@ const EndForm: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-      localStorage.removeItem('controlDate');
-      localStorage.removeItem('newControl');
-      localStorage.removeItem('controlDateList');
+    localStorage.removeItem('controlDate');
+    localStorage.removeItem('newControl');
+    localStorage.removeItem('controlDateList');
 
-      router.replace("/atividades");
-    }, 5000);
+    router.replace("/atividades");
   };
 
   return (
