@@ -38,6 +38,7 @@ const NewCowForm: React.FC = () => {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
+    if (!token || !farmerId || !farmId) return;
 
     if (!cowNumber) {
       setError("Por favor, insira um número para identificação.");

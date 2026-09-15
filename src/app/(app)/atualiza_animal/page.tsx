@@ -128,6 +128,7 @@ const CowUpdateForm: React.FC = () => {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
+    if (!token || !farmerId || !farmId) return;
 
     if (!calvingDate) {
       setError("Por favor, insira uma data de parto.");
@@ -172,7 +173,9 @@ const CowUpdateForm: React.FC = () => {
   };
 
   const deleteAnimal = async () => {
-    if (!animalId || !farmerId || !farmId) {
+    if (!token || !farmerId || !farmId) return;
+
+    if (!animalId) {
       setError(
         "Informações necessárias para excluir o animal não estão disponíveis."
       );

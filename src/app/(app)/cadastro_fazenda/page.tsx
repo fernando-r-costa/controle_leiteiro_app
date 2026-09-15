@@ -28,6 +28,7 @@ const FarmRegisterForm: React.FC = () => {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
+    if (!token || !farmerId) return;
 
     if (!farmName) {
       setError("Por favor, insira um nome para a Fazenda.");
