@@ -17,6 +17,14 @@ const FARM_REQUIRED_ROUTES = [
   "/relatorios",
   "/relatorio_final",
 ];
+const CONTROL_DATE_REQUIRED_ROUTES = [
+  "/controle_individual",
+  "/controle_final",
+];
+const REPORT_DATE_REQUIRED_ROUTES = ["/relatorio_final"];
+
+const matchesRoute = (pathname: string, route: string) =>
+  pathname === route || pathname.startsWith(`${route}/`);
 
 type AuthGuardProps = {
   children: ReactNode;
@@ -28,8 +36,15 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const [isClientReady, setIsClientReady] = useState(false);
   const isPublicRoute = PUBLIC_ROUTES.has(pathname);
   const requiresFarm = FARM_REQUIRED_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`)
+    (route) => matchesRoute(pathname, route)
   );
+  const controlDateRedirect = CONTROL_DATE_REQUIRED_ROUTES.some((route) =>
+    matchesRoute(pathname, route)
+  )
+    ? "/controle_leiteiro"
+    : REPORT_DATE_REQUIRED_ROUTES.some((route) => matchesRoute(pathname, route))
+      ? "/relatorios"
+      : null;
   const hasAuthenticationContext =
     isPublicRoute ||
     (isClientReady &&
@@ -38,6 +53,9 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const hasFarmContext =
     !requiresFarm ||
     (isClientReady && Boolean(localStorage.getItem("farmId")));
+  const hasControlDateContext =
+    !controlDateRedirect ||
+    (isClientReady && Boolean(localStorage.getItem("controlDate")));
 
   useEffect(() => {
     setIsClientReady(true);
@@ -51,9 +69,18 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
       return;
     }
 
-    if (!hasFarmContext) router.replace("/fazenda");
+    if (!hasFarmContext) {
+      router.replace("/fazenda");
+      return;
+    }
+
+    if (!hasControlDateContext && controlDateRedirect) {
+      router.replace(controlDateRedirect);
+    }
   }, [
+    controlDateRedirect,
     hasAuthenticationContext,
+    hasControlDateContext,
     hasFarmContext,
     isClientReady,
     isPublicRoute,
@@ -61,7 +88,12 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   ]);
 
   if (isPublicRoute) return children;
-  if (!isClientReady || !hasAuthenticationContext || !hasFarmContext) {
+  if (
+    !isClientReady ||
+    !hasAuthenticationContext ||
+    !hasFarmContext ||
+    !hasControlDateContext
+  ) {
     return null;
   }
 
