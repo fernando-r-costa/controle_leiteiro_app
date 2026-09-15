@@ -54,7 +54,12 @@ const FarmForm: React.FC = () => {
 
   const farmerId =
     typeof window !== "undefined" ? localStorage.getItem("farmerId") : null;
-  const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}farm/farmer/${farmerId}`;
+  const authToken =
+    typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+  const apiUrl =
+    authToken && farmerId
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}farm/farmer/${farmerId}`
+      : null;
   const { data: farmList, error: farmError } = useSWR<Farm[]>(apiUrl, fetcher);
 
   useEffect(() => {

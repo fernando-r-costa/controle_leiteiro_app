@@ -28,12 +28,17 @@ const ReportsDateForm: React.FC = () => {
     typeof window !== "undefined" ? localStorage.getItem("farmerId") : null;
   const farmId =
     typeof window !== "undefined" ? localStorage.getItem("farmId") : null;
+  const authToken =
+    typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
 
   const [controlDate, setControlDate] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const apiDairyControlUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}dairy-control/farmer/${farmerId}/farm/${farmId}/dates`;
+  const apiDairyControlUrl =
+    authToken && farmerId && farmId
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}dairy-control/farmer/${farmerId}/farm/${farmId}/dates`
+      : null;
 
   const {
     data: dateControlList,

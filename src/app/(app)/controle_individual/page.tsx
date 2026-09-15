@@ -83,7 +83,9 @@ const IndividualProductionForm: React.FC = () => {
     error: dairyControlError,
     isLoading: dairyControlLoading,
   } = useSWR<DairyProductionRecord[]>(
-    `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${apiKeyDate}`,
+    token && farmerId && farmId && controlDate && apiKeyDate
+      ? `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${apiKeyDate}`
+      : null,
     fetcher,
     {
       dedupingInterval: 0,
@@ -98,7 +100,9 @@ const IndividualProductionForm: React.FC = () => {
     error: animalListError,
     isLoading: animalListLoading,
   } = useSWR<Animal[]>(
-    `${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`,
+    token && farmerId && farmId
+      ? `${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`
+      : null,
     fetcher,
     {
       dedupingInterval: 0,

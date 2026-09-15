@@ -54,7 +54,9 @@ const CowUpdateForm: React.FC = () => {
     error: cowListError,
     isLoading: cowListLoading,
   } = useSWR<Animal[]>(
-    `${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`,
+    token && farmerId && farmId
+      ? `${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`
+      : null,
     fetcher,
     {
       dedupingInterval: 0,

@@ -379,7 +379,9 @@ const TableForm: React.FC = () => {
     error: dairyControlError,
     isLoading: dairyControlLoading,
   } = useSWR<DairyControl[]>(
-    `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${controlDate}`,
+    token && farmerId && farmId && controlDate
+      ? `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${controlDate}`
+      : null,
     fetcher,
     {
       dedupingInterval: 0,
