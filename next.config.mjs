@@ -10,9 +10,6 @@ const withPWA = withPWAInit({
 const isVercelProduction = process.env.VERCEL_ENV === 'production';
 
 export default withPWA({
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   experimental: {
     urlImports: ["https://cdn.skypack.dev"],
   },
