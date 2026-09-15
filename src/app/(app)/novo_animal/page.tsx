@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import authenticatedApi from "@/lib/authenticated-api";
 import { formatDateForInput, normalizeDateInputForBackend } from "../../utils/formatters";
 import Form from "../components/form";
 import FormText from "../components/texts";
@@ -66,7 +66,7 @@ const NewCowForm: React.FC = () => {
     };
 
     try {
-      await axios.post(apiAnimalUrl, animalData, {
+      await authenticatedApi.post(apiAnimalUrl, animalData, {
         headers: { Authorization: `Bearer ${token}` },
       });
     } catch (error: any) {

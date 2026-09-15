@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import axios from "axios";
+import authenticatedApi from "@/lib/authenticated-api";
 import Table from "../components/table";
 import Form from "../components/form";
 import FormText from "../components/texts";
@@ -177,7 +178,7 @@ const INTELLIGENT_REPORT_STATUS_STEPS = [
 const fetcher = async (url: string) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
-  const res = await axios.get(url, {
+  const res = await authenticatedApi.get(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.data;
@@ -295,7 +296,9 @@ const TableForm: React.FC = () => {
 
     const loadIntelligentReportStatus = async () => {
       try {
-        const response = await axios.get<{ status: IntelligentReportPersistenceStatus }>(
+        const response = await authenticatedApi.get<{
+          status: IntelligentReportPersistenceStatus;
+        }>(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}report/farmer/${farmerId}/farm/${farmId}/date/${controlDate}/intelligent/status`,
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -342,7 +345,7 @@ const TableForm: React.FC = () => {
 
     const loadReportAccessStatuses = async () => {
       try {
-        const response = await axios.get<ReportAccessStatuses>(
+        const response = await authenticatedApi.get<ReportAccessStatuses>(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}report/farmer/${farmerId}/farm/${farmId}/date/${controlDate}/access-status`,
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -442,7 +445,7 @@ const TableForm: React.FC = () => {
     setIsExporting(true);
 
     try {
-      const response = await axios.get(
+      const response = await authenticatedApi.get(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}report/farmer/${farmerId}/farm/${farmId}/date/${controlDate}/excel`,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -546,7 +549,7 @@ const TableForm: React.FC = () => {
     intelligentReportAbortRef.current = abortController;
 
     try {
-      const response = await axios.get(
+      const response = await authenticatedApi.get(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}report/farmer/${farmerId}/farm/${farmId}/date/${controlDate}/intelligent/ai/pdf`,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -644,7 +647,7 @@ const TableForm: React.FC = () => {
     setIsCreatingPayment(true);
 
     try {
-      const response = await axios.post<ReportPaymentResponse>(
+      const response = await authenticatedApi.post<ReportPaymentResponse>(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}report/farmer/${farmerId}/farm/${farmId}/date/${controlDate}/payment/${product}`,
         undefined,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -778,14 +781,15 @@ const TableForm: React.FC = () => {
       let shouldContinuePolling = false;
 
       try {
-        const response = await axios.post<PaymentConfirmationResponse>(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}report/payment/${activePaymentId}/confirm`,
-          undefined,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-            signal: abortController.signal,
-          }
-        );
+        const response =
+          await authenticatedApi.post<PaymentConfirmationResponse>(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}report/payment/${activePaymentId}/confirm`,
+            undefined,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+              signal: abortController.signal,
+            }
+          );
 
         if (!active) return;
         if (response.data.reportPaymentId !== activePaymentId) {

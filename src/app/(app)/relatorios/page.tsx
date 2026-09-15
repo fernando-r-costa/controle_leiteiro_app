@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import authenticatedApi from "@/lib/authenticated-api";
 import useSWR from "swr";
 import { formatDateForDisplay } from "../../utils/formatters";
 import Form from "../components/form";
@@ -16,7 +16,7 @@ interface DateControl {
 const fetcher = async (url: string) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
-  const res = await axios.get(url, {
+  const res = await authenticatedApi.get(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.data;

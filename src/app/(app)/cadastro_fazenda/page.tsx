@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import authenticatedApi from "@/lib/authenticated-api";
 import Form from "../components/form";
 import FormText from "../components/texts";
 import FormInput from "../components/inputs";
@@ -44,7 +44,7 @@ const FarmRegisterForm: React.FC = () => {
     };
 
     try {
-      await axios.post(apiFarmUrl, farmData, {
+      await authenticatedApi.post(apiFarmUrl, farmData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

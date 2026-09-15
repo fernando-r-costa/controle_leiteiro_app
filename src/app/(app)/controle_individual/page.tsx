@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import useSWR, { mutate } from "swr";
-import axios from "axios";
+import authenticatedApi from "@/lib/authenticated-api";
 import Form from "../components/form";
 import FormText from "../components/texts";
 import FormInput from "../components/inputs";
@@ -35,7 +35,7 @@ interface DairyProductionRecord {
 const fetcher = async (url: string) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
-  const res = await axios.get(url, {
+  const res = await authenticatedApi.get(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.data;
@@ -309,13 +309,21 @@ const IndividualProductionForm: React.FC = () => {
       };
 
       if (!registerId) {
-        await axios.post(`${apiDairyControlUrl}`, dairyControlRegister, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await authenticatedApi.post(
+          `${apiDairyControlUrl}`,
+          dairyControlRegister,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
       } else {
-        await axios.put(`${apiDairyControlUrl}`, dairyControlRegister, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await authenticatedApi.put(
+          `${apiDairyControlUrl}`,
+          dairyControlRegister,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
       }
       
       await mutate(
@@ -370,7 +378,7 @@ const IndividualProductionForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await axios.delete(
+      await authenticatedApi.delete(
         `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/animal/${animalId}/${registerId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -432,7 +440,7 @@ const IndividualProductionForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const updatedRecords = await axios.get(
+      const updatedRecords = await authenticatedApi.get(
         `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${apiKeyDate}`,
         {
           headers: { Authorization: `Bearer ${token}` },

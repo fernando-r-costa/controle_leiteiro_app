@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR, { mutate } from "swr";
-import axios from "axios";
+import authenticatedApi from "@/lib/authenticated-api";
 import {
   formatDateForInput,
   normalizeDateInputForBackend,
@@ -25,7 +25,7 @@ export interface Animal {
 const fetcher = async (url: string) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
-  const res = await axios.get(url, {
+  const res = await authenticatedApi.get(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.data;
@@ -151,7 +151,7 @@ const CowUpdateForm: React.FC = () => {
     };
 
     try {
-      await axios.put(apiAnimalUrl, animalData, {
+      await authenticatedApi.put(apiAnimalUrl, animalData, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -195,7 +195,7 @@ const CowUpdateForm: React.FC = () => {
       if (confirmDelete) {
         const deleteUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}animal/farmer/${farmerId}/farm/${farmId}/animal/${animalId}`;
 
-        await axios.delete(deleteUrl, {
+        await authenticatedApi.delete(deleteUrl, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

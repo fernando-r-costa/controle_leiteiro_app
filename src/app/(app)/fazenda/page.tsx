@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import axios from "axios";
+import authenticatedApi from "@/lib/authenticated-api";
 import useSWR, { mutate } from "swr";
 import Form from "../components/form";
 import FormText from "../components/texts";
@@ -33,7 +33,7 @@ function formatTrialDate(value: string): string {
 const fetcher = async (url: string) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
-  const res = await axios.get(url, {
+  const res = await authenticatedApi.get(url, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -75,7 +75,7 @@ const FarmForm: React.FC = () => {
 
     const loadTrialSummary = async () => {
       try {
-        const response = await axios.get<TrialSummary>(
+        const response = await authenticatedApi.get<TrialSummary>(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}report/farmer/${currentFarmerId}/trial-summary`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
