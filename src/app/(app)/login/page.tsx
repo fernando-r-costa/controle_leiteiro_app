@@ -2,10 +2,10 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import Form from "../components/form/page";
-import FormText from "../components/texts/page";
-import FormInput from "../components/inputs/page";
-import Button from "../components/buttons/page";
+import Form from "../components/form";
+import FormText from "../components/texts";
+import FormInput from "../components/inputs";
+import Button from "../components/buttons";
 
 interface Login {
   token: string;

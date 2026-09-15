@@ -4,10 +4,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import axios from "axios";
-import Table from "../components/table/page";
-import Form from "../components/form/page";
-import FormText from "../components/texts/page";
-import Button from "../components/buttons/page";
+import Table from "../components/table";
+import Form from "../components/form";
+import FormText from "../components/texts";
+import Button from "../components/buttons";
 
 interface Farm {
   farmId: number;

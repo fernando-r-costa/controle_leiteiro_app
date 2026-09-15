@@ -1,9 +1,9 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Form from "../components/form/page";
-import Button from "../components/buttons/page";
-import FormText from "../components/texts/page";
+import Form from "../components/form";
+import Button from "../components/buttons";
+import FormText from "../components/texts";
 
 const EndForm: React.FC = () => {
   const router = useRouter();

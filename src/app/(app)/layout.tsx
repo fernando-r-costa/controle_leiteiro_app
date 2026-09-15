@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Header from "./components/header/page";
 import Footer from "./components/footer/page";
-import FormText from "./components/texts/page";
+import FormText from "./components/texts";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (

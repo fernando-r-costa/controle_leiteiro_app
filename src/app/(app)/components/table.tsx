@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import FormText from "../texts/page";
+import FormText from "./texts";
 
 type TableColumn = {
   key: string;
