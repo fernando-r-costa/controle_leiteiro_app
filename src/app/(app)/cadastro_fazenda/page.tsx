@@ -12,6 +12,15 @@ interface FarmData {
   farmerId: string | null;
 }
 
+const SAFE_FARM_REGISTRATION_API_ERRORS = new Set([
+  "Fazenda já cadastrada",
+  "Produtor não encontrado",
+  "Campos obrigatórios não preenchidos",
+  "Acesso negado.",
+  "Token inválido.",
+  "Você não tem permissão para esta ação.",
+]);
+
 const FarmRegisterForm: React.FC = () => {
   const router = useRouter();
   const farmerId =
@@ -53,7 +62,13 @@ const FarmRegisterForm: React.FC = () => {
       router.push(`/fazenda`);
     } catch (error: any) {
       setIsLoading(false);
-      setError(error.response?.data?.error || "Erro ao cadastrar Fazenda");
+      const apiError = error.response?.data?.error;
+      setError(
+        typeof apiError === "string" &&
+          SAFE_FARM_REGISTRATION_API_ERRORS.has(apiError)
+          ? apiError
+          : "Erro ao cadastrar Fazenda"
+      );
     }
   };
 

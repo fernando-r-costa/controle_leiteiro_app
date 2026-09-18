@@ -48,7 +48,6 @@ const FarmForm: React.FC = () => {
   const [farmName, setFarmName] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [showMessage, setShowMessage] = useState<boolean>(false);
   const [trialSummary, setTrialSummary] = useState<TrialSummary | null>(null);
   const trialSummaryRequestedRef = useRef(false);
 
@@ -136,65 +135,32 @@ const FarmForm: React.FC = () => {
     router.push(`/cadastro_fazenda`);
   };
 
-  const logout = async () => {
-    const confirmLogout = window.confirm(
-      "Tem certeza que deseja sair da sua conta?"
-    );
-    if (confirmLogout) {
-      setShowMessage(true);
-      setTimeout(async () => {
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("authToken");
-          localStorage.removeItem("farmerId");
-          localStorage.removeItem("farmId");
-          localStorage.removeItem("farmName");
-          localStorage.removeItem("controlDate");
-          localStorage.removeItem("newControl");
-          localStorage.removeItem("controlDateList");
-          await mutate((key) => true, undefined, { revalidate: false });
-        }
-        window.location.href = '/login';
-      }, 2000);
-    }
-  };
-
   return (
     <>
       <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
-      {showMessage ? (
-        <div className="flex-grow overflow-y-auto mx-auto mt-8 animate-pulse">
-          <FormText type="title">Até logo!</FormText>
-        </div>
-      ) : (
-        <>
-          <FormText type="title">FAZENDA:</FormText>
+        <FormText type="title">FAZENDA:</FormText>
 
-          <FormText type="label-large">
-            Qual o nome da Fazenda ou do Retiro onde será feita a medição:
-          </FormText>
+        <FormText type="label-large">
+          Qual o nome da Fazenda ou do Retiro onde será feita a medição:
+        </FormText>
 
-          <FormInput
-            size="select"
-            type="select"
-            value={farmId}
-            onChange={handleSelectChange}
-            options={farmList?.map((farm) => ({
-              label: farm.name,
-              value: String(farm.farmId),
-            }))}
-          />
+        <FormInput
+          size="select"
+          type="select"
+          value={farmId}
+          onChange={handleSelectChange}
+          options={farmList?.map((farm) => ({
+            label: farm.name,
+            value: String(farm.farmId),
+          }))}
+        />
 
-          {error && <FormText type="error">{error}</FormText>}
+        {error && <FormText type="error">{error}</FormText>}
 
-          <Button type="submit">Selecionar</Button>
-          <Button type="button" onClick={newFarm}>
-            Nova Fazenda
-          </Button>
-          <Button type="button" onClick={logout}>
-            Sair
-          </Button>
-        </>
-      )}
+        <Button type="submit">Selecionar</Button>
+        <Button type="button" onClick={newFarm}>
+          Nova Fazenda
+        </Button>
       </Form>
 
       {trialSummary && (
@@ -207,20 +173,21 @@ const FarmForm: React.FC = () => {
           <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-lg bg-light-color p-6 text-dark-color shadow-lg sm:p-8">
             <h2 id="trial-summary-title" className="mb-5 text-2xl font-semibold">
               {trialSummary.trialStatus === "active"
-                ? "Período gratuito ativo"
-                : "Período gratuito encerrado"}
+                ? "Benefício de relatórios ativo"
+                : "Benefício de relatórios encerrado"}
             </h2>
 
             {trialSummary.trialStatus === "active" ? (
               <div className="space-y-4 text-base sm:text-lg">
                 <p>
-                  Seu período gratuito termina em {formatTrialDate(trialSummary.expiresAt)}.
+                  Seu benefício de relatórios dos primeiros 3 meses é válido até{" "}
+                  {formatTrialDate(trialSummary.expiresAt)}.
                 </p>
                 <p>
-                  Sua cota gratuita deste período é válida até{" "}
+                  A cota deste período mensal é válida até{" "}
                   {formatTrialDate(trialSummary.currentPeriodEndsAt || "")}.
                 </p>
-                <p>Neste período você ainda possui:</p>
+                <p>Neste período:</p>
                 <div className="space-y-2 rounded-lg bg-white/60 p-4">
                   <p className="flex items-center justify-between gap-4">
                     <span>Planilha:</span>
@@ -240,16 +207,20 @@ const FarmForm: React.FC = () => {
                   </p>
                 </div>
                 <p>
-                  Você pode gerar relatórios adicionais além da sua cota gratuita.
+                  Mesmo após utilizar a cota do período, você pode gerar relatórios
+                  adicionais com pagamento por relatório.
                 </p>
               </div>
             ) : (
               <div className="space-y-4 text-base sm:text-lg">
                 <p>
-                  Seu período gratuito terminou em {formatTrialDate(trialSummary.expiresAt)}.
+                  Seu benefício de relatórios dos primeiros 3 meses terminou em{" "}
+                  {formatTrialDate(trialSummary.expiresAt)}.
                 </p>
                 <p>Os relatórios já liberados continuam disponíveis.</p>
-                <p>Você pode continuar gerando novos relatórios conforme a sua necessidade.</p>
+                <p>
+                  Você pode gerar novos relatórios com pagamento por relatório.
+                </p>
               </div>
             )}
 

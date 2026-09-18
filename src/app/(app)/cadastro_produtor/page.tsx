@@ -14,6 +14,11 @@ interface Farmer {
   phone: string;
 }
 
+const SAFE_FARMER_REGISTRATION_API_ERRORS = new Set([
+  "Produtor já cadastrado!",
+  "Campos obrigatórios não preenchidos",
+]);
+
 const FarmerRegisterForm: React.FC = () => {
   const router = useRouter();
 
@@ -89,7 +94,13 @@ const FarmerRegisterForm: React.FC = () => {
       router.push("/login");
     } catch (error: any) {
       setIsLoading(false);
-      setError(error.response?.data?.error || "Erro ao cadastrar produtor");
+      const apiError = error.response?.data?.error;
+      setError(
+        typeof apiError === "string" &&
+          SAFE_FARMER_REGISTRATION_API_ERRORS.has(apiError)
+          ? apiError
+          : "Erro ao cadastrar produtor"
+      );
     }
   };
 

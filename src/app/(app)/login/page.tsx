@@ -12,6 +12,12 @@ interface Login {
   farmerId: number;
 }
 
+const SAFE_LOGIN_API_ERRORS = new Set([
+  "E-mail não encontrado!",
+  "Senha inválida!",
+  "Campos obrigatórios não preenchidos",
+]);
+
 const LoginForm: React.FC = () => {
   const router = useRouter();
 
@@ -57,9 +63,11 @@ const LoginForm: React.FC = () => {
       router.push(`/fazenda`);
     } catch (error: any) {
       setIsLoading(false);
+      const apiError = error.response?.data?.error;
       setError(
-        error.response?.data?.error ||
-          "Erro ao fazer login. Verifique seu e-mail e senha.",
+        typeof apiError === "string" && SAFE_LOGIN_API_ERRORS.has(apiError)
+          ? apiError
+          : "Erro ao fazer login. Verifique seu e-mail e senha.",
       );
     }
   };
@@ -96,6 +104,10 @@ const LoginForm: React.FC = () => {
       {error && <FormText type="error">{error}</FormText>}
 
       <Button type="submit" disabled={isLoading}>Entrar</Button>
+      <p className="mb-4 max-w-md text-sm leading-relaxed text-primary-color">
+        Usou a versão experimental? Os cadastros e dados anteriores não foram
+        migrados. Para utilizar esta versão, faça um novo cadastro.
+      </p>
       <Button type="button" onClick={newFarmer}>
         Novo cadastro
       </Button>

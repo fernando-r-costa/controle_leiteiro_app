@@ -22,6 +22,20 @@ export interface Animal {
   farmId: number;
 }
 
+const SAFE_ANIMAL_UPDATE_API_ERRORS = new Set([
+  "Animal não encontrado",
+  "Número do animal ou Fazenda ou Proprietário não são correspondentes",
+  "Acesso negado.",
+  "Token inválido.",
+  "Você não tem permissão para esta ação.",
+]);
+
+const SAFE_ANIMAL_DELETE_API_ERRORS = new Set([
+  "Acesso negado.",
+  "Token inválido.",
+  "Você não tem permissão para esta ação.",
+]);
+
 const fetcher = async (url: string) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
@@ -157,7 +171,13 @@ const CowUpdateForm: React.FC = () => {
 
       await mutate(`${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`);
     } catch (error: any) {
-      setError(error.response?.data?.error || "Os dados não foram salvos!");
+      const apiError = error.response?.data?.error;
+      setError(
+        typeof apiError === "string" &&
+          SAFE_ANIMAL_UPDATE_API_ERRORS.has(apiError)
+          ? apiError
+          : "Os dados não foram salvos!"
+      );
       setIsLoading(false);
       return;
     }
@@ -203,7 +223,13 @@ const CowUpdateForm: React.FC = () => {
         router.replace("/cadastro_animais");
       }
     } catch (error: any) {
-      setError(error.response?.data?.error || "Erro ao excluir o animal.");
+      const apiError = error.response?.data?.error;
+      setError(
+        typeof apiError === "string" &&
+          SAFE_ANIMAL_DELETE_API_ERRORS.has(apiError)
+          ? apiError
+          : "Erro ao excluir o animal."
+      );
     } finally {
       setIsLoading(false);
     }

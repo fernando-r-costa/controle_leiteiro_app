@@ -17,6 +17,15 @@ export interface Animal {
   farmId: number;
 }
 
+const SAFE_ANIMAL_REGISTRATION_API_ERRORS = new Set([
+  "Fazenda não encontrada",
+  "Animal já cadastrado",
+  "Campos obrigatórios não preenchidos",
+  "Acesso negado.",
+  "Token inválido.",
+  "Você não tem permissão para esta ação.",
+]);
+
 const NewCowForm: React.FC = () => {
   const router = useRouter();
   const farmerId =
@@ -70,7 +79,13 @@ const NewCowForm: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
     } catch (error: any) {
-      setError(error.response?.data?.error || "Os dados não foram salvos!");
+      const apiError = error.response?.data?.error;
+      setError(
+        typeof apiError === "string" &&
+          SAFE_ANIMAL_REGISTRATION_API_ERRORS.has(apiError)
+          ? apiError
+          : "Os dados não foram salvos!"
+      );
       setIsLoading(false);
       return;
     }

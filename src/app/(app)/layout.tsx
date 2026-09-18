@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import Header from "./components/header/page";
-import Footer from "./components/footer/page";
+import Header from "./components/header";
+import Footer from "./components/footer";
 import FormText from "./components/texts";
 import AuthGuard from "./components/auth-guard";
 

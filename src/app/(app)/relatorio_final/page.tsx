@@ -224,6 +224,7 @@ const TableForm: React.FC = () => {
   const [reportAccessStatusError, setReportAccessStatusError] = useState(false);
   const [reportAccessStatusRefresh, setReportAccessStatusRefresh] = useState(0);
   const [paymentModal, setPaymentModal] = useState<PaymentModalData | null>(null);
+  const [pixCopyFeedback, setPixCopyFeedback] = useState("");
   const [isCreatingPayment, setIsCreatingPayment] = useState(false);
   const [isPaymentConfirmationPaused, setIsPaymentConfirmationPaused] =
     useState(false);
@@ -728,6 +729,7 @@ const TableForm: React.FC = () => {
       handledPaidPaymentIdRef.current = null;
       paymentConfirmationFailureCountRef.current = 0;
       setIsPaymentConfirmationPaused(false);
+      setPixCopyFeedback("");
       setPaymentModal({
         reportPaymentId: payment.reportPaymentId,
         product,
@@ -785,10 +787,12 @@ const TableForm: React.FC = () => {
   const handleCopyPixCode = async () => {
     if (!paymentModal?.pixCode) return;
 
+    setPixCopyFeedback("");
     try {
       await navigator.clipboard.writeText(paymentModal.pixCode);
+      setPixCopyFeedback("Código Pix copiado.");
     } catch {
-      setError("Não foi possível copiar o código Pix.");
+      setPixCopyFeedback("Não foi possível copiar o código Pix.");
     }
   };
 
@@ -801,6 +805,7 @@ const TableForm: React.FC = () => {
     paymentConfirmationAbortRef.current = null;
     paymentConfirmationFailureCountRef.current = 0;
     setIsPaymentConfirmationPaused(false);
+    setPixCopyFeedback("");
     setPaymentModal(null);
   };
 
@@ -1042,6 +1047,10 @@ const TableForm: React.FC = () => {
       >
         {intelligentReportButtonLabel}
       </Button>
+      <p className="-mt-4 mb-8 max-w-xl px-2 text-sm italic leading-relaxed text-primary-color">
+        O Relatório Inteligente é uma ferramenta de apoio à análise e não
+        substitui a avaliação de um profissional quando necessária.
+      </p>
       <Button type="submit">Voltar</Button>
 
       {isGeneratingIntelligentReport && (
@@ -1074,12 +1083,12 @@ const TableForm: React.FC = () => {
 
       {paymentModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-dark-color/60 px-4 py-6"
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-dark-color/60 px-4 py-6"
           role="dialog"
           aria-modal="true"
           aria-labelledby="payment-modal-title"
         >
-          <div className="w-full max-w-md rounded-lg bg-light-color p-6 text-dark-color shadow-lg">
+          <div className="my-auto w-full max-w-md rounded-lg bg-light-color p-6 text-dark-color shadow-lg">
             <h2 id="payment-modal-title" className="mb-4 text-xl font-semibold">
               {paymentModal.product === "spreadsheet"
                 ? "Pagamento da Planilha"
@@ -1114,6 +1123,16 @@ const TableForm: React.FC = () => {
               rows={4}
               className="mb-3 w-full resize-none break-all rounded-md border border-primary-color/30 bg-white p-3 text-sm text-dark-color"
             />
+
+            {pixCopyFeedback && (
+              <p
+                className="mb-3 text-sm text-primary-color"
+                role="status"
+                aria-live="polite"
+              >
+                {pixCopyFeedback}
+              </p>
+            )}
 
             <Button type="button" onClick={handleCopyPixCode}>
               Copiar código Pix

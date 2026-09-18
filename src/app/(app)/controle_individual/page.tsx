@@ -32,6 +32,22 @@ interface DairyProductionRecord {
   animal: Animal;
 }
 
+const SAFE_DAIRY_CONTROL_SAVE_API_ERRORS = new Set([
+  "Animal não encontrado",
+  "Acesso negado.",
+  "Token inválido.",
+  "Você não tem permissão para esta ação.",
+  "Já existe um registro para este animal na data informada",
+  "Não é permitido alterar os campos",
+]);
+
+const SAFE_DAIRY_CONTROL_DELETE_API_ERRORS = new Set([
+  "Controle de leite não encontrado.",
+  "Acesso negado.",
+  "Token inválido.",
+  "Você não tem permissão para esta ação.",
+]);
+
 const fetcher = async (url: string) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
@@ -343,8 +359,12 @@ const IndividualProductionForm: React.FC = () => {
       const topElement = document.getElementById("top");
       topElement?.scrollIntoView({ behavior: "smooth" });
     } catch (error: any) {
+      const apiError = error.response?.data?.error;
       setError(
-        error.response?.data?.error || "Erro ao salvar controle de leite!"
+        typeof apiError === "string" &&
+          SAFE_DAIRY_CONTROL_SAVE_API_ERRORS.has(apiError)
+          ? apiError
+          : "Erro ao salvar controle de leite!"
       );
       setIsLoading(false);
       return false;
@@ -418,7 +438,13 @@ const IndividualProductionForm: React.FC = () => {
         }
       }
     } catch (error: any) {
-      setError(error.response?.data?.error || "Erro ao excluir pesagem!");
+      const apiError = error.response?.data?.error;
+      setError(
+        typeof apiError === "string" &&
+          SAFE_DAIRY_CONTROL_DELETE_API_ERRORS.has(apiError)
+          ? apiError
+          : "Erro ao excluir pesagem!"
+      );
     }
 
     setIsLoading(false);
