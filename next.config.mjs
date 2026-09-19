@@ -3,7 +3,7 @@ import withPWAInit from "@ducanh2912/next-pwa";
 const withPWA = withPWAInit({
   dest: "public",
   register: true,
-  scope: "/app",
+  scope: "/",
   sw: "service-worker.js",
 });
 
