@@ -765,13 +765,12 @@ const Footer = () => (
             <span>Desenvolvido pela</span>
             <span className="inline-flex items-center gap-2">
               <Image
-                src="/tepeyac-icon.png"
-                alt=""
-                width={32}
-                height={32}
-                className="h-8 w-8 object-contain"
+                src="/logo_horiz_tepeyac.png"
+                alt="Tepeyac Tech"
+                width={384}
+                height={95}
+                className="h-10 w-auto"
               />
-              <span>Tepeyac Tech.</span>
             </span>
           </p>
 
@@ -794,7 +793,7 @@ const Footer = () => (
                 <BiLogoWhatsapp className="h-6 w-6" />
               </a>
               <a
-                href="https://www.instagram.com/fernandorcosta25"
+                href="https://www.instagram.com/fernandocosta.tepeyac"
                 className="rounded-sm text-secondary-color transition-colors hover:text-tertiary-color focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tertiary-color focus-visible:ring-offset-2 focus-visible:ring-offset-primary-color"
                 aria-label="Fernando Costa no Instagram"
                 target="_blank"

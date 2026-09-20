@@ -19,15 +19,15 @@ import { BiLogoWhatsapp } from "react-icons/bi";
 const Footer = () => {
   return (
     <footer className="bg-primary-color px-4 py-4 text-light-color font-light sm:px-8">
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 sm:flex-row">
+      <div className="mx-auto flex max-w-6xl flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Image
-            src="/tepeyac-icon.png"
+            src="/logo_horiz_tepeyac.png"
             alt="Logo da Tepeyac Tech"
-            width={40}
-            height={40}
+            width={384}
+            height={95}
+            className="h-10 w-auto"
           />
-          <span className="text-lg sm:text-xl">Tepeyac Tech</span>
         </div>
 
         <div className="flex items-center justify-center gap-2">
@@ -48,7 +48,7 @@ const Footer = () => {
             <BiLogoWhatsapp className="h-6 w-6" />
           </a>
           <a
-            href="https://www.instagram.com/fernandorcosta25"
+            href="https://www.instagram.com/fernandocosta.tepeyac"
             className="p-2 hover:text-tertiary-color transition-colors"
             aria-label="Link para Instagram"
             target="_blank"

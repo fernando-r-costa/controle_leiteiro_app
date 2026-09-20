@@ -3,6 +3,7 @@ import Header from "./components/header";
 import Footer from "./components/footer";
 import FormText from "./components/texts";
 import AuthGuard from "./components/auth-guard";
+import InstallPwaPrompt from "./components/install-pwa-prompt";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -16,7 +17,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         }
       >
         <main className="flex-grow overflow-y-auto">
-          <AuthGuard>{children}</AuthGuard>
+          <AuthGuard>
+            <InstallPwaPrompt />
+            {children}
+          </AuthGuard>
         </main>
       </Suspense>
       <Footer />
