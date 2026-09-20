@@ -2,10 +2,10 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import Form from "../components/form/page";
-import FormText from "../components/texts/page";
-import FormInput from "../components/inputs/page";
-import Button from "../components/buttons/page";
+import Form from "../components/form";
+import FormText from "../components/texts";
+import FormInput from "../components/inputs";
+import Button from "../components/buttons";
 
 interface Farmer {
   name: string;
@@ -13,6 +13,11 @@ interface Farmer {
   password: string;
   phone: string;
 }
+
+const SAFE_FARMER_REGISTRATION_API_ERRORS = new Set([
+  "Produtor já cadastrado!",
+  "Campos obrigatórios não preenchidos",
+]);
 
 const FarmerRegisterForm: React.FC = () => {
   const router = useRouter();
@@ -41,6 +46,7 @@ const FarmerRegisterForm: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^(\+55)?\(\d{2}\)\s?\d{4,5}-\d{4}$/;
@@ -84,10 +90,17 @@ const FarmerRegisterForm: React.FC = () => {
         `${process.env.NEXT_PUBLIC_API_BASE_URL}farmer/register`,
         farmerData
       );
+      setIsLoading(false);
       router.push("/login");
     } catch (error: any) {
       setIsLoading(false);
-      setError(error.response?.data?.error || "Erro ao cadastrar produtor");
+      const apiError = error.response?.data?.error;
+      setError(
+        typeof apiError === "string" &&
+          SAFE_FARMER_REGISTRATION_API_ERRORS.has(apiError)
+          ? apiError
+          : "Erro ao cadastrar produtor"
+      );
     }
   };
 
@@ -145,7 +158,7 @@ const FarmerRegisterForm: React.FC = () => {
 
       {error && <FormText type="error">{error}</FormText>}
 
-      <Button type="submit">Cadastrar</Button>
+      <Button type="submit" disabled={isLoading}>Cadastrar</Button>
       <Button type="button" onClick={goBack}>
         Voltar
       </Button>

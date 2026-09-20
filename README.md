@@ -110,7 +110,7 @@ Todo o projeto é desenvolvido em **TypeScript**. Isso garante a tipagem estáti
   <a href="https://www.linkedin.com/in/fernando-r-costa/" target="_blank">
     <img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white">
   </a>
-  <a href="https://www.instagram.com/fernandorcosta25/" target="_blank">
+  <a href="https://www.instagram.com/fernandocosta.tepeyac" target="_blank">
     <img alt="Instagram" src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white">
   </a>
   <a href="https://www.youtube.com/@controle.leiteiro" target="_blank">

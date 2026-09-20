@@ -2,15 +2,15 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR, { mutate } from "swr";
-import axios from "axios";
+import authenticatedApi from "@/lib/authenticated-api";
 import {
   formatDateForInput,
   normalizeDateInputForBackend,
 } from "../../utils/formatters";
-import Form from "../components/form/page";
-import FormText from "../components/texts/page";
-import FormInput from "../components/inputs/page";
-import Button from "../components/buttons/page";
+import Form from "../components/form";
+import FormText from "../components/texts";
+import FormInput from "../components/inputs";
+import Button from "../components/buttons";
 
 export interface Animal {
   animalId: number;
@@ -22,10 +22,24 @@ export interface Animal {
   farmId: number;
 }
 
+const SAFE_ANIMAL_UPDATE_API_ERRORS = new Set([
+  "Animal não encontrado",
+  "Número do animal ou Fazenda ou Proprietário não são correspondentes",
+  "Acesso negado.",
+  "Token inválido.",
+  "Você não tem permissão para esta ação.",
+]);
+
+const SAFE_ANIMAL_DELETE_API_ERRORS = new Set([
+  "Acesso negado.",
+  "Token inválido.",
+  "Você não tem permissão para esta ação.",
+]);
+
 const fetcher = async (url: string) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
-  const res = await axios.get(url, {
+  const res = await authenticatedApi.get(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.data;
@@ -43,7 +57,6 @@ const CowUpdateForm: React.FC = () => {
   const [cowNumber, setNumber] = useState<string>("");
   const [cowName, setCowName] = useState<string>("");
   const [animalId, setAnimalId] = useState<number>();
-  console.log("🚀 ~ animalId:", animalId);
   const [calvingDate, setCalvingDate] = useState<string>("");
   const [expectedDate, setExpectedDate] = useState<string | null>(null);
   const [error, setError] = useState<string>("");
@@ -55,7 +68,9 @@ const CowUpdateForm: React.FC = () => {
     error: cowListError,
     isLoading: cowListLoading,
   } = useSWR<Animal[]>(
-    `${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`,
+    token && farmerId && farmId
+      ? `${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`
+      : null,
     fetcher,
     {
       dedupingInterval: 0,
@@ -126,6 +141,8 @@ const CowUpdateForm: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
+    if (!token || !farmerId || !farmId) return;
 
     if (!calvingDate) {
       setError("Por favor, insira uma data de parto.");
@@ -148,16 +165,22 @@ const CowUpdateForm: React.FC = () => {
     };
 
     try {
-      await axios.put(apiAnimalUrl, animalData, {
+      await authenticatedApi.put(apiAnimalUrl, animalData, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      await mutate(`${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`);
     } catch (error: any) {
-      setError(error.response?.data?.error || "Os dados não foram salvos!");
+      const apiError = error.response?.data?.error;
+      setError(
+        typeof apiError === "string" &&
+          SAFE_ANIMAL_UPDATE_API_ERRORS.has(apiError)
+          ? apiError
+          : "Os dados não foram salvos!"
+      );
       setIsLoading(false);
       return;
     }
-
-    await mutate(`${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`);
 
     const topElement = document.getElementById("top");
     topElement?.scrollIntoView({ behavior: "smooth" });
@@ -170,7 +193,9 @@ const CowUpdateForm: React.FC = () => {
   };
 
   const deleteAnimal = async () => {
-    if (!animalId || !farmerId || !farmId) {
+    if (!token || !farmerId || !farmId) return;
+
+    if (!animalId) {
       setError(
         "Informações necessárias para excluir o animal não estão disponíveis."
       );
@@ -180,12 +205,7 @@ const CowUpdateForm: React.FC = () => {
     setIsLoading(true);
     setError("");
 
-    const delay = (ms: number) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
-
     try {
-      await delay(2000);
-
       const confirmDelete = window.confirm(
         `Tem certeza de que deseja excluir o animal: ${cowNumber} ${
           cowName || "Sem nome"
@@ -195,7 +215,7 @@ const CowUpdateForm: React.FC = () => {
       if (confirmDelete) {
         const deleteUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}animal/farmer/${farmerId}/farm/${farmId}/animal/${animalId}`;
 
-        await axios.delete(deleteUrl, {
+        await authenticatedApi.delete(deleteUrl, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -203,7 +223,13 @@ const CowUpdateForm: React.FC = () => {
         router.replace("/cadastro_animais");
       }
     } catch (error: any) {
-      setError(error.response?.data?.error || "Erro ao excluir o animal.");
+      const apiError = error.response?.data?.error;
+      setError(
+        typeof apiError === "string" &&
+          SAFE_ANIMAL_DELETE_API_ERRORS.has(apiError)
+          ? apiError
+          : "Erro ao excluir o animal."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -259,7 +285,7 @@ const CowUpdateForm: React.FC = () => {
 
       {error && <FormText type="error">{error}</FormText>}
 
-      <Button type="submit">Atualizar animal</Button>
+      <Button type="submit" disabled={isLoading}>Atualizar animal</Button>
       <Button type="button" onClick={deleteAnimal}>
         Excluir animal
       </Button>

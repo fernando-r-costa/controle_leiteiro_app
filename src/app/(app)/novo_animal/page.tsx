@@ -1,12 +1,12 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import authenticatedApi from "@/lib/authenticated-api";
 import { formatDateForInput, normalizeDateInputForBackend } from "../../utils/formatters";
-import Form from "../components/form/page";
-import FormText from "../components/texts/page";
-import FormInput from "../components/inputs/page";
-import Button from "../components/buttons/page";
+import Form from "../components/form";
+import FormText from "../components/texts";
+import FormInput from "../components/inputs";
+import Button from "../components/buttons";
 
 export interface Animal {
   name?: string;
@@ -16,6 +16,15 @@ export interface Animal {
   farmerId: number;
   farmId: number;
 }
+
+const SAFE_ANIMAL_REGISTRATION_API_ERRORS = new Set([
+  "Fazenda não encontrada",
+  "Animal já cadastrado",
+  "Campos obrigatórios não preenchidos",
+  "Acesso negado.",
+  "Token inválido.",
+  "Você não tem permissão para esta ação.",
+]);
 
 const NewCowForm: React.FC = () => {
   const router = useRouter();
@@ -37,6 +46,8 @@ const NewCowForm: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
+    if (!token || !farmerId || !farmId) return;
 
     if (!cowNumber) {
       setError("Por favor, insira um número para identificação.");
@@ -64,11 +75,17 @@ const NewCowForm: React.FC = () => {
     };
 
     try {
-      await axios.post(apiAnimalUrl, animalData, {
+      await authenticatedApi.post(apiAnimalUrl, animalData, {
         headers: { Authorization: `Bearer ${token}` },
       });
     } catch (error: any) {
-      setError(error.response?.data?.error || "Os dados não foram salvos!");
+      const apiError = error.response?.data?.error;
+      setError(
+        typeof apiError === "string" &&
+          SAFE_ANIMAL_REGISTRATION_API_ERRORS.has(apiError)
+          ? apiError
+          : "Os dados não foram salvos!"
+      );
       setIsLoading(false);
       return;
     }
@@ -135,7 +152,7 @@ const NewCowForm: React.FC = () => {
 
       {error && <FormText type="error">{error}</FormText>}
 
-      <Button type="submit">Cadastrar novo animal</Button>
+      <Button type="submit" disabled={isLoading}>Cadastrar novo animal</Button>
       <Button type="button" onClick={goBack}>
         Voltar
       </Button>

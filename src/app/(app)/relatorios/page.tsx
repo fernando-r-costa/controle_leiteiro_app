@@ -1,13 +1,13 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import authenticatedApi from "@/lib/authenticated-api";
 import useSWR from "swr";
 import { formatDateForDisplay } from "../../utils/formatters";
-import Form from "../components/form/page";
-import FormText from "../components/texts/page";
-import FormInput from "../components/inputs/page";
-import Button from "../components/buttons/page";
+import Form from "../components/form";
+import FormText from "../components/texts";
+import FormInput from "../components/inputs";
+import Button from "../components/buttons";
 
 interface DateControl {
   dairyDateControl: string;
@@ -16,7 +16,7 @@ interface DateControl {
 const fetcher = async (url: string) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
-  const res = await axios.get(url, {
+  const res = await authenticatedApi.get(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.data;
@@ -28,12 +28,17 @@ const ReportsDateForm: React.FC = () => {
     typeof window !== "undefined" ? localStorage.getItem("farmerId") : null;
   const farmId =
     typeof window !== "undefined" ? localStorage.getItem("farmId") : null;
+  const authToken =
+    typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
 
   const [controlDate, setControlDate] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const apiDairyControlUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}dairy-control/farmer/${farmerId}/farm/${farmId}/dates`;
+  const apiDairyControlUrl =
+    authToken && farmerId && farmId
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}dairy-control/farmer/${farmerId}/farm/${farmId}/dates`
+      : null;
 
   const {
     data: dateControlList,

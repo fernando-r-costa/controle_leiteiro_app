@@ -2,11 +2,11 @@
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import useSWR, { mutate } from "swr";
-import axios from "axios";
-import Form from "../components/form/page";
-import FormText from "../components/texts/page";
-import FormInput from "../components/inputs/page";
-import Button from "../components/buttons/page";
+import authenticatedApi from "@/lib/authenticated-api";
+import Form from "../components/form";
+import FormText from "../components/texts";
+import FormInput from "../components/inputs";
+import Button from "../components/buttons";
 
 interface Animal {
   animalId: number;
@@ -32,10 +32,26 @@ interface DairyProductionRecord {
   animal: Animal;
 }
 
+const SAFE_DAIRY_CONTROL_SAVE_API_ERRORS = new Set([
+  "Animal não encontrado",
+  "Acesso negado.",
+  "Token inválido.",
+  "Você não tem permissão para esta ação.",
+  "Já existe um registro para este animal na data informada",
+  "Não é permitido alterar os campos",
+]);
+
+const SAFE_DAIRY_CONTROL_DELETE_API_ERRORS = new Set([
+  "Controle de leite não encontrado.",
+  "Acesso negado.",
+  "Token inválido.",
+  "Você não tem permissão para esta ação.",
+]);
+
 const fetcher = async (url: string) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
-  const res = await axios.get(url, {
+  const res = await authenticatedApi.get(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.data;
@@ -83,7 +99,9 @@ const IndividualProductionForm: React.FC = () => {
     error: dairyControlError,
     isLoading: dairyControlLoading,
   } = useSWR<DairyProductionRecord[]>(
-    `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${apiKeyDate}`,
+    token && farmerId && farmId && controlDate && apiKeyDate
+      ? `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${apiKeyDate}`
+      : null,
     fetcher,
     {
       dedupingInterval: 0,
@@ -98,7 +116,9 @@ const IndividualProductionForm: React.FC = () => {
     error: animalListError,
     isLoading: animalListLoading,
   } = useSWR<Animal[]>(
-    `${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`,
+    token && farmerId && farmId
+      ? `${apiAnimalUrl}/farmer/${farmerId}/farm/${farmId}`
+      : null,
     fetcher,
     {
       dedupingInterval: 0,
@@ -260,17 +280,19 @@ const IndividualProductionForm: React.FC = () => {
     }
   }, [isLoading, animalList, dairyControlRecords]);
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent): Promise<boolean> => {
     e.preventDefault();
+    if (isLoading) return false;
+    if (!token || !farmerId || !farmId || !controlDate) return false;
 
     if (!cowNumber) {
       setError("Por favor, insira um número para identificação");
-      return;
+      return false;
     }
 
     if (!weightMilking1) {
       setError("Por favor, insira uma pesagem.");
-      return;
+      return false;
     }
 
     setError("");
@@ -281,7 +303,7 @@ const IndividualProductionForm: React.FC = () => {
       if (!animalData) {
         setError("Animal não encontrado");
         setIsLoading(false);
-        return;
+        return false;
       }
 
       const dairyControlRegister = {
@@ -303,13 +325,21 @@ const IndividualProductionForm: React.FC = () => {
       };
 
       if (!registerId) {
-        await axios.post(`${apiDairyControlUrl}`, dairyControlRegister, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await authenticatedApi.post(
+          `${apiDairyControlUrl}`,
+          dairyControlRegister,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
       } else {
-        await axios.put(`${apiDairyControlUrl}`, dairyControlRegister, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await authenticatedApi.put(
+          `${apiDairyControlUrl}`,
+          dairyControlRegister,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
       }
       
       await mutate(
@@ -329,12 +359,19 @@ const IndividualProductionForm: React.FC = () => {
       const topElement = document.getElementById("top");
       topElement?.scrollIntoView({ behavior: "smooth" });
     } catch (error: any) {
+      const apiError = error.response?.data?.error;
       setError(
-        error.response?.data?.error || "Erro ao salvar controle de leite!"
+        typeof apiError === "string" &&
+          SAFE_DAIRY_CONTROL_SAVE_API_ERRORS.has(apiError)
+          ? apiError
+          : "Erro ao salvar controle de leite!"
       );
+      setIsLoading(false);
+      return false;
     }
 
     setIsLoading(false);
+    return true;
   };
 
   const handleSelectChange = (
@@ -345,7 +382,9 @@ const IndividualProductionForm: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    if (!registerId || !farmerId || !farmId || !animalId) {
+    if (!token || !farmerId || !farmId || !controlDate) return;
+
+    if (!registerId || !animalId) {
       setError("Informações necessárias para excluir não estão disponíveis.");
       return;
     }
@@ -359,7 +398,7 @@ const IndividualProductionForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await axios.delete(
+      await authenticatedApi.delete(
         `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/animal/${animalId}/${registerId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -399,23 +438,35 @@ const IndividualProductionForm: React.FC = () => {
         }
       }
     } catch (error: any) {
-      setError(error.response?.data?.error || "Erro ao excluir pesagem!");
+      const apiError = error.response?.data?.error;
+      setError(
+        typeof apiError === "string" &&
+          SAFE_DAIRY_CONTROL_DELETE_API_ERRORS.has(apiError)
+          ? apiError
+          : "Erro ao excluir pesagem!"
+      );
     }
 
     setIsLoading(false);
   };
 
   const finishProductionControl = async () => {
+    if (isLoading) return;
+    if (!token || !farmerId || !farmId || !controlDate) return;
+
     if (cowNumber !== "" && weightMilking1 !== "") {
       try {
-        await handleFormSubmit(new Event("submit") as any);
+        const wasSaved = await handleFormSubmit(new Event("submit") as any);
+        if (!wasSaved) return;
       } catch (error) {
         return;
       }
     }
 
+    setIsLoading(true);
+
     try {
-      const updatedRecords = await axios.get(
+      const updatedRecords = await authenticatedApi.get(
         `${apiDairyControlUrl}/farmer/${farmerId}/farm/${farmId}/date/${apiKeyDate}`,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -453,12 +504,13 @@ const IndividualProductionForm: React.FC = () => {
       const confirmFinish = window.confirm(mensagem);
 
       if (confirmFinish) {
-        setIsLoading(true);
         router.replace(`/controle_final`);
       }
     } catch (error) {
       setError("Erro ao verificar dados finais");
     }
+
+    setIsLoading(false);
   };
 
   const goBack = () => {
@@ -522,7 +574,7 @@ const IndividualProductionForm: React.FC = () => {
 
       {error && <FormText type="error">{error}</FormText>}
 
-      <Button type="submit">
+      <Button type="submit" disabled={isLoading}>
         {registerId ? "Atualizar Pesagem" : "Incluir Pesagem"}
       </Button>
       {registerId && (
@@ -530,7 +582,11 @@ const IndividualProductionForm: React.FC = () => {
           Excluir Pesagem
         </Button>
       )}
-      <Button type="button" onClick={finishProductionControl}>
+      <Button
+        type="button"
+        onClick={finishProductionControl}
+        disabled={isLoading}
+      >
         Finalizar Pesagem
       </Button>
       <Button type="button" onClick={goBack}>

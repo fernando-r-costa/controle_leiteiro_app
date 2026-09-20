@@ -2,15 +2,21 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import Form from "../components/form/page";
-import FormText from "../components/texts/page";
-import FormInput from "../components/inputs/page";
-import Button from "../components/buttons/page";
+import Form from "../components/form";
+import FormText from "../components/texts";
+import FormInput from "../components/inputs";
+import Button from "../components/buttons";
 
 interface Login {
   token: string;
   farmerId: number;
 }
+
+const SAFE_LOGIN_API_ERRORS = new Set([
+  "E-mail não encontrado!",
+  "Senha inválida!",
+  "Campos obrigatórios não preenchidos",
+]);
 
 const LoginForm: React.FC = () => {
   const router = useRouter();
@@ -22,6 +28,7 @@ const LoginForm: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -50,13 +57,17 @@ const LoginForm: React.FC = () => {
       const { token, farmerId } = response.data;
       localStorage.setItem("authToken", token);
       localStorage.setItem("farmerId", String(farmerId));
+      sessionStorage.setItem("showTrialSummaryAfterLogin", "true");
       setError("");
+      setIsLoading(false);
       router.push(`/fazenda`);
     } catch (error: any) {
       setIsLoading(false);
+      const apiError = error.response?.data?.error;
       setError(
-        error.response?.data?.error ||
-          "Erro ao fazer login. Verifique seu e-mail e senha.",
+        typeof apiError === "string" && SAFE_LOGIN_API_ERRORS.has(apiError)
+          ? apiError
+          : "Erro ao fazer login. Verifique seu e-mail e senha.",
       );
     }
   };
@@ -72,7 +83,7 @@ const LoginForm: React.FC = () => {
 
   return (
     <Form onSubmit={handleFormSubmit} animatePulse={isLoading}>
-      {/* <FormText type="title">Login:</FormText>
+      <FormText type="title">Login:</FormText>
 
       <FormText type="label-large">E-MAIL:</FormText>
       <FormInput
@@ -92,14 +103,14 @@ const LoginForm: React.FC = () => {
 
       {error && <FormText type="error">{error}</FormText>}
 
-      <Button type="submit">Entrar</Button>
+      <Button type="submit" disabled={isLoading}>Entrar</Button>
+      <p className="mb-4 max-w-md text-sm leading-relaxed text-primary-color">
+        Usou a versão experimental? Os cadastros e dados anteriores não foram
+        migrados. Para utilizar esta versão, faça um novo cadastro.
+      </p>
       <Button type="button" onClick={newFarmer}>
         Novo cadastro
-      </Button> */}
-      <div style={{ textAlign: "center", marginTop: "20px" }}>
-      <h1>O sistema está em manutenção</h1>
-      <p>Por favor, tente novamente mais tarde.</p>
-    </div>
+      </Button>
     </Form>
   );
 };

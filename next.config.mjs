@@ -3,16 +3,13 @@ import withPWAInit from "@ducanh2912/next-pwa";
 const withPWA = withPWAInit({
   dest: "public",
   register: true,
-  scope: "/app",
+  scope: "/",
   sw: "service-worker.js",
 });
 
 const isVercelProduction = process.env.VERCEL_ENV === 'production';
 
 export default withPWA({
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   experimental: {
     urlImports: ["https://cdn.skypack.dev"],
   },
