@@ -1,5 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Form from "../components/form";
@@ -157,6 +158,24 @@ const FarmerRegisterForm: React.FC = () => {
       />
 
       {error && <FormText type="error">{error}</FormText>}
+
+      <p className="mb-4 max-w-md text-center text-sm leading-relaxed text-primary-color">
+        Ao utilizar o Controle Leiteiro, consulte nossa{" "}
+        <Link
+          href="/politica-de-privacidade"
+          className="font-semibold underline underline-offset-2 transition-colors hover:text-dark-color focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-color"
+        >
+          Política de Privacidade
+        </Link>
+        {" e os "}
+        <Link
+          href="/termos-de-uso"
+          className="font-semibold underline underline-offset-2 transition-colors hover:text-dark-color focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-color"
+        >
+          Termos de Uso
+        </Link>
+        .
+      </p>
 
       <Button type="submit" disabled={isLoading}>Cadastrar</Button>
       <Button type="button" onClick={goBack}>
