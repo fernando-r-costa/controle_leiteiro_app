@@ -808,6 +808,19 @@ const Footer = () => (
 
       <div className="mt-8 border-t border-secondary-color/30 pt-6 text-center text-sm text-secondary-color/80">
         <p>© 2026 Controle Leiteiro. Todos os direitos reservados.</p>
+        <Link
+          href="/politica-de-privacidade"
+          className="mt-2 inline-block rounded-sm underline underline-offset-4 transition-colors hover:text-tertiary-color focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tertiary-color focus-visible:ring-offset-2 focus-visible:ring-offset-primary-color"
+        >
+          Política de Privacidade
+        </Link>
+        <span className="mx-2" aria-hidden="true">•</span>
+        <Link
+          href="/termos-de-uso"
+          className="mt-2 inline-block rounded-sm underline underline-offset-4 transition-colors hover:text-tertiary-color focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tertiary-color focus-visible:ring-offset-2 focus-visible:ring-offset-primary-color"
+        >
+          Termos de Uso
+        </Link>
       </div>
     </div>
   </footer>

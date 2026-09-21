@@ -3,9 +3,10 @@ import "./globals.css";
 import { Suspense } from "react";
 
 const APP_NAME = "Controle Leiteiro";
-const APP_DEFAULT_TITLE = "Controle Leiteiro";
-const APP_TITLE_TEMPLATE = "Controle Leiteiro";
-const APP_DESCRIPTION = "Controle Leiteiro PWA";
+const APP_DEFAULT_TITLE = "Controle Leiteiro | Gestão simples da produção leiteira";
+const APP_TITLE_TEMPLATE = "Controle Leiteiro | Gestão simples da produção leiteira";
+const APP_DESCRIPTION =
+  "Registre a produção por animal, acompanhe a evolução dos controles e gere relatórios para apoiar a gestão da sua fazenda.";
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
@@ -42,14 +43,16 @@ export const metadata: Metadata = {
       template: APP_TITLE_TEMPLATE,
     },
     description: APP_DESCRIPTION,
+    images: ["/logo_H_CL.png"],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: {
       default: APP_DEFAULT_TITLE,
       template: APP_TITLE_TEMPLATE,
     },
     description: APP_DESCRIPTION,
+    images: ["/logo_H_CL.png"],
   },
 };
 
