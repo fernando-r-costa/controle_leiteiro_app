@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { Suspense } from "react";
 
@@ -77,6 +78,7 @@ export default function RootLayout({
         >
           {children}
         </Suspense>
+        <Analytics />
       </body>
     </html>
   );
